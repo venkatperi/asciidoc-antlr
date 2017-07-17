@@ -1,0 +1,30 @@
+apply plugin: 'antlr'
+
+repositories {
+  mavenCentral()
+}
+
+dependencies {
+  antlr "org.antlr:antlr4:4.7"
+  testCompile 'junit:junit:4.12'
+}
+
+generateGrammarSource {
+  maxHeapSize = "64m"
+  arguments += [ "-visitor", "-long-messages" ]
+}
+
+task testRig {
+}
+
+def dir = 'src/test/rig'
+FileTree tree = fileTree( dir: dir, include: '**/*.adoc' )
+
+tree.each { File file ->
+  task "rig_${file.name}" ( type: JavaExec, dependsOn: 'build' ) {
+    classpath = sourceSets.main.runtimeClasspath
+    main = "org.antlr.v4.gui.TestRig"
+    args "Asciidoc", "asciidoc", "-tree", file.absolutePath
+  }
+  testRig.dependsOn "rig_${file.name}"
+}
