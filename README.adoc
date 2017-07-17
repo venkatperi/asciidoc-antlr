@@ -1,0 +1,11 @@
+= Antlr Lexer/Parser for Asciidoc
+
+A prototype / proof of concept
+
+To run:
+
+```bash
+$ git clone https://github.com/venkatperi/asciidoc-antlr
+$ cd asciidoc-antlr
+$ ./gradlew testRig   #build grammar and run testRig. Output in build/rig
+```
