@@ -94,16 +94,12 @@ attr_value
 // doc sections
 
 doc_sections
-  : l1_sections
+  : doc_sections doc_section
+  | doc_section
   ;
 
-l1_sections
-  : l1_sections l1_section
-  | l1_section
-  ;
-
-l1_section
-  : H1 section_title l1_content_items
+doc_section
+  : SEC_TITLE_START section_title sec_content_items
   ;
 
 section_title
@@ -112,14 +108,14 @@ section_title
 
 
 ///////////////////////
-// content 
+// section content 
 
-l1_content_items
-  : l1_content_items l1_content_item 
-  | l1_content_item
+sec_content_items
+  : sec_content_items sec_content_item 
+  | sec_content_item
   ;
 
-l1_content_item
+sec_content_item
   : paragraph 
   ;
 

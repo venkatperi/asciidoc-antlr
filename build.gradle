@@ -6,6 +6,7 @@ repositories {
 
 dependencies {
   antlr "org.antlr:antlr4:4.7"
+  compile group: 'org.ghost4j', name: 'ghost4j', version: '1.0.1'
   testCompile 'junit:junit:4.12'
 }
 
@@ -21,10 +22,12 @@ def dir = 'src/test/rig'
 FileTree tree = fileTree( dir: dir, include: '**/*.adoc' )
 
 tree.each { File file ->
-  task "rig_${file.name}" ( type: JavaExec, dependsOn: 'build' ) {
+  task "rig_${file.name}" (type: com.vperi.util.TestRigTask, dependsOn: 'build') {
     classpath = sourceSets.main.runtimeClasspath
-    main = "org.antlr.v4.gui.TestRig"
-    args "Asciidoc", "asciidoc", "-tree", file.absolutePath
+    grammar = "Asciidoc"
+    startRule = "asciidoc"
+    src = file
   }
+
   testRig.dependsOn "rig_${file.name}"
 }

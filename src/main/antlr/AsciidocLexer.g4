@@ -9,25 +9,13 @@ H0
     '=' WS              -> pushMode(DOCTITLE)
   ;
 
-H1  
+SEC_TITLE_START  
   : {getCharPositionInLine()==0}? 
-    '==' WS             -> pushMode(SECTION_TITLE)
-  ;
-
-H2  
-  : BOL '===' WS        -> pushMode(SECTION_TITLE)
-  ;
-
-H3  
-  : BOL '====' WS        -> pushMode(SECTION_TITLE)
-  ;
-
-H4  
-  : BOL '=====' WS        -> pushMode(SECTION_TITLE)
-  ;
-
-H5  
-  : BOL '======' WS        -> pushMode(SECTION_TITLE)
+    ( '==' | '######' 
+    | '===' | '#####'
+    | '====' | '####'
+    | '=====' | '###'
+    | '======' | '##' ) WS       -> pushMode(SECTION_TITLE)
   ;
 
 ATTR_BEGIN
@@ -35,19 +23,13 @@ ATTR_BEGIN
       ':'             -> pushMode(ATTR)
   ;
 
-
 COMMENT  
   : '//' ~[\r\n]*     -> channel(HIDDEN) 
-  ;
-
-SEMI
-  : ';'
   ;
 
 WS 
   : [ \t]+            -> channel(HIDDEN) 
   ;
-
 
 EOL 
   : EOLF 
@@ -63,11 +45,37 @@ EOLF
   : '\r'? '\n'
   ;
 
+fragment
+GT
+  : '>'               
+  ;
+
+fragment
+LT
+  : '<'                
+  ;
+
+fragment
+SEMI
+  : ';'               
+  ;
+
+fragment
+COLON
+  : ':'               
+  ;
+
+fragment
+BANG
+  : '!'               
+  ;
+
+
 ///////////////////
 mode DOCTITLE;
 
 DOCTITLE_CSP
-  : ': '              //-> mode(DOCSUBTITLE)
+  : ': '              
   ;
 
 DOCTITLE_PART
@@ -75,39 +83,33 @@ DOCTITLE_PART
   ;
 
 DOCTITLE_EOL
-  : '\r'? '\n'        -> mode(DOCAUTHOR)
+  : EOLF              -> mode(DOCAUTHOR)
   ;
 
 
 ///////////////////
 mode DOCAUTHOR;
 
+// extend for unicode, special chars etc. 
 DOCAUTHOR_NAME
   : [-_a-zA-Z]+
   ;
 
+// doesn't parse email/url
 DOCAUTHOR_CONTACT
-  : DOCAUTHOR_LT .*? DOCAUTHOR_GT
-  ;
-
-DOCAUTHOR_GT
-  : '>'               
-  ;
-
-DOCAUTHOR_LT
-  : '<'                
+  : LT .*? GT 
   ;
 
 DOCAUTHOR_SEP
-  : ';'               
+  : SEMI               
   ;
 
 DOCAUTHOR_EOL
-  : '\r'? '\n'        -> popMode
+  : EOLF              -> popMode
   ;
 
 DOCAUTHOR_WS 
-  : [ \t]+            -> channel(HIDDEN) 
+  : WS                -> channel(HIDDEN) 
   ;
 
 
@@ -123,11 +125,11 @@ ATTR_VALUE
   ;
 
 ATTR_UNSET
-  : '!'
+  : BANG 
   ;
 
 ATTR_EOL
-  : '\r'? '\n'        -> popMode
+  : EOLF            -> popMode
   ;
 
 
@@ -148,14 +150,12 @@ mode CONTENT;
 
 
 CONTENT_PARA
-  //: {getCharPositionInLine()==0 && (_input.LA(1)=='\r'  || _input.LA(1)=='\n')}? 
   : {getCharPositionInLine()==0}? 
     .*? CONTENT_EOP
   ;
 
-fragment
 CONTENT_EOP
-  : EOLF EOLF+        
+  : EOLF EOLF+        -> popMode
   ;
 
 

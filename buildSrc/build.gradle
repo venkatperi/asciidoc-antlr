@@ -1,0 +1,11 @@
+apply plugin: 'groovy'
+
+repositories {
+  mavenCentral()
+}
+
+
+dependencies {
+  compile group: 'commons-io', name: 'commons-io', version: '2.5'
+  compile group: 'org.ghost4j', name: 'ghost4j', version: '1.0.1'
+}
