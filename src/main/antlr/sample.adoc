@@ -1,14 +1,15 @@
 
-= This is the title: this is the subtitle
+= This is the title: this also part of the title: this is the subtitle
 First Author <author1@gmail.com>; Second Author <author2@gmail.com>
 :leveloffset: 3
-:name: value
+:set_to_value: value
 :uri-fedpkg: https://apps.fedoraproject.org/packages/asciidoc
-:!showtitle:
-:sectnums!:
+:!unset_left:
+:unset_right!:
+:set_to_true:
 
 
-[pos_attr1, attr2, attr3=some value]
+[#chapter-1, attr2, attr3=some value]
 == Chapter 1 
 
 This is a sample paragraph.
@@ -17,7 +18,7 @@ So is this.
 
 This is teh second paragraph.
 
-
+[.lead]
 And this is the third.
 
 

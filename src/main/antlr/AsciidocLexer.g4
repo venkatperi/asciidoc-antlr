@@ -13,26 +13,29 @@ lexer grammar AsciidocLexer;
 
 H0  
   : {isBOL()}?  
-      '=' WS              -> pushMode(DOCTITLE)
-  ;
-
-
-fragment
-SEC_TITLE_START_F
-  : { isBOL() }? 
-    ( '==' | '######' 
-    | '===' | '#####'
-    | '====' | '####'
-    | '=====' | '###'
-    | '======' | '##' ) 
+      '=' WS                      -> pushMode(DOCTITLE)
   ;
 
 ATTR_BEGIN
-  : { isBOL() }?  ':'             -> pushMode(ATTR)
+  : { isBOL() }?  
+      COLON                       -> pushMode(ATTR)
   ;
 
 COMMENT
   : COMMENT_F                     -> channel(HIDDEN) 
+  ;
+
+END_OF_HEADER
+  : { isBOL() }? 
+      EOLF+                       -> pushMode(CONTENT)
+  ;
+
+EOL
+  : EOLF                          -> channel(HIDDEN)
+  ;
+
+WS 
+  : WS_CHAR+                      -> channel(HIDDEN) 
   ;
 
 fragment
@@ -40,17 +43,15 @@ COMMENT_F
   : '//' ~[\r\n]*                 
   ;
 
-END_OF_HEADER
-  : { isBOL() }? EOLF+            -> pushMode(CONTENT)
-  ;
-
-EOL
-  : EOLF                -> channel(HIDDEN)
-  ;
-
-WS 
-  : WS_CHAR+            -> channel(HIDDEN) 
-  ;
+fragment
+SEC_TITLE_START_F
+  : { isBOL() }? 
+      ( '==' | '######' 
+      | '===' | '#####'
+      | '====' | '####'
+      | '=====' | '###'
+      | '======' | '##' ) WS_CHAR+
+    ;
 
 fragment
 EOLF
@@ -73,6 +74,11 @@ SEMI
   ;
 
 fragment
+PERIOD
+  : '.'               
+  ;
+
+fragment
 COLON
   : ':'               
   ;
@@ -88,6 +94,11 @@ WS_CHAR
   ;
 
 fragment
+SPACE
+  : ' '
+  ;
+
+fragment
 ATTR_ID_F
   : [_a-zA-Z0-9] [-_a-zA-Z0-9]*
   ;
@@ -96,7 +107,7 @@ ATTR_ID_F
 mode DOCTITLE;
 
 DOCTITLE_CSP
-  : ': '                   
+  : COLON SPACE 
   ;
 
 DOCTITLE_PART
@@ -104,7 +115,7 @@ DOCTITLE_PART
   ;
 
 DOCTITLE_EOL
-  : EOLF              -> mode(DOCAUTHOR)
+  : EOLF                            -> mode(DOCAUTHOR)
   ;
 
 
@@ -126,11 +137,11 @@ DOCAUTHOR_SEP
   ;
 
 DOCAUTHOR_EOL
-  : EOLF              -> popMode
+  : EOLF                          -> popMode
   ;
 
 DOCAUTHOR_WS 
-  : WS                -> channel(HIDDEN) 
+  : WS                            -> channel(HIDDEN) 
   ;
 
 
@@ -138,21 +149,28 @@ DOCAUTHOR_WS
 mode ATTR;
 
 ATTR_ID
-  : ATTR_ID_F
-  ;
-
-ATTR_VALUE
-  : ':' ~[\r\n]*      
+  : ATTR_ID_F                       
   ;
 
 ATTR_UNSET
   : BANG 
   ;
 
-ATTR_EOL
-  : EOLF            -> popMode
+ATTR_SEP
+  : COLON WS_CHAR*                  -> mode(ATTR_VALUE_MODE)
   ;
 
+
+///////////////////
+mode ATTR_VALUE_MODE;
+
+ATTR_VALUE
+  : ~[\r\n]+      
+  ;
+
+ATTR_EOL
+  : WS_CHAR* EOLF                            -> popMode
+  ;
 
 ///////////////////
 mode SECTION_TITLE;
@@ -162,7 +180,7 @@ SECTITLE_TEXT
   ;
 
 SECTITLE_EOL
-  : EOLF+            -> mode(CONTENT)
+  : EOLF+                           -> mode(CONTENT)
   ;
 
 
@@ -171,54 +189,85 @@ mode CONTENT;
 
 
 CONTENT_SEC_TITLE_START  
-  : SEC_TITLE_START_F             -> mode(SECTION_TITLE)
+  : SEC_TITLE_START_F               -> mode(SECTION_TITLE)
   ;
 
 CONTENT_ATTR_START
   : {isBOL()}? 
-     '['                         -> pushMode(ELEMENT_ATTR)
+     '[' WS_CHAR*                   -> pushMode(ELEMENT_ATTR)
   ;
+
+//CONTENT_TITLE_START
+  //: {isBOL()}? 
+     //'.'                            -> pushMode(CONTENT_TITLE_MODE)
+  //;
 
 CONTENT_PARA                     
   : {isBOL()}? 
       ~[=[] .*? CONTENT_EOP 
   ;
 
-
 CONTENT_COMMENT
   : COMMENT_F                     -> channel(HIDDEN) 
   ;
 
 CONTENT_EOP
-  : EOLF EOLF+                    //-> popMode
+  : EOLF EOLF+                    
   ;
+
 
 ///////////////////
 mode ELEMENT_ATTR;
-
 
 ELEMENT_ATTR_ID
   : ATTR_ID_F
   ;
 
 ELEMENT_ATTR_COMMA
-  :  ','
+  :  WS_CHAR* ',' WS_CHAR*
   ;
 
 ELEMENT_ATTR_ASSIGN
-  :  '='
+  :  WS_CHAR* '='                         -> pushMode(ELEMENT_ATTR_VAL)
+  ;
+
+ELEMENT_ATTR_TYPE_ROLE
+  :  WS_CHAR* PERIOD                        
+  ;
+
+ELEMENT_ATTR_TYPE_ID
+  :  WS_CHAR* '#'                        
+  ;
+
+ELEMENT_ATTR_UNSET
+  : WS_CHAR* BANG  
   ;
 
 ELEMENT_ATTR_END
-  :  ']'                        
+  :  WS_CHAR* ']'                        
   ;
 
 ELEMENT_ATTR_EOL
-  :  EOLF                        -> popMode
+  :  WS_CHAR* EOLF                        -> popMode
   ;
 
+///////////////////
+mode ELEMENT_ATTR_VAL;
+
 ELEMENT_ATTR_VALUE
-  : ~[\],=]+
+  : ~[\],]+                               -> popMode
   ;
+
+///////////////////
+mode CONTENT_TITLE_MODE;
+
+CONTENT_TITLE_TEXT
+  : ~[\r\n]+                               
+  ;
+
+CONTENT_TITLE_EOL
+  : EOLF                                  -> popMode
+  ;
+
 
 
