@@ -1,43 +1,55 @@
 lexer grammar AsciidocLexer;
 
+@lexer::members {
+
+  public boolean isBOL() {
+    return _input.LA(-1) == '\n';
+  }
+
+}
 
 ///////////////////
-// default mode
+// default mode = header?
 
 H0  
-  : {getCharPositionInLine()==0}? 
-    '=' WS              -> pushMode(DOCTITLE)
+  : {isBOL()}?  
+      '=' WS              -> pushMode(DOCTITLE)
   ;
 
-SEC_TITLE_START  
-  : {getCharPositionInLine()==0}? 
+
+fragment
+SEC_TITLE_START_F
+  : { isBOL() }? 
     ( '==' | '######' 
     | '===' | '#####'
     | '====' | '####'
     | '=====' | '###'
-    | '======' | '##' ) WS       -> pushMode(SECTION_TITLE)
+    | '======' | '##' ) 
   ;
 
 ATTR_BEGIN
-  : {getCharPositionInLine()==0}? 
-      ':'             -> pushMode(ATTR)
+  : { isBOL() }?  ':'             -> pushMode(ATTR)
   ;
 
-COMMENT  
-  : '//' ~[\r\n]*     -> channel(HIDDEN) 
-  ;
-
-WS 
-  : [ \t]+            -> channel(HIDDEN) 
-  ;
-
-EOL 
-  : EOLF 
+COMMENT
+  : COMMENT_F                     -> channel(HIDDEN) 
   ;
 
 fragment
-BOL 
-  : [\r\n\f]+     
+COMMENT_F
+  : '//' ~[\r\n]*                 
+  ;
+
+END_OF_HEADER
+  : { isBOL() }? EOLF+            -> pushMode(CONTENT)
+  ;
+
+EOL
+  : EOLF                -> channel(HIDDEN)
+  ;
+
+WS 
+  : WS_CHAR+            -> channel(HIDDEN) 
   ;
 
 fragment
@@ -70,12 +82,21 @@ BANG
   : '!'               
   ;
 
+fragment
+WS_CHAR
+  : [ \t]
+  ;
+
+fragment
+ATTR_ID_F
+  : [_a-zA-Z0-9] [-_a-zA-Z0-9]*
+  ;
 
 ///////////////////
 mode DOCTITLE;
 
 DOCTITLE_CSP
-  : ': '              
+  : ': '                   
   ;
 
 DOCTITLE_PART
@@ -117,7 +138,7 @@ DOCAUTHOR_WS
 mode ATTR;
 
 ATTR_ID
-  : [_a-zA-Z0-9] [-_a-zA-Z0-9]*
+  : ATTR_ID_F
   ;
 
 ATTR_VALUE
@@ -149,13 +170,55 @@ SECTITLE_EOL
 mode CONTENT;
 
 
-CONTENT_PARA
-  : {getCharPositionInLine()==0}? 
-    .*? CONTENT_EOP
+CONTENT_SEC_TITLE_START  
+  : SEC_TITLE_START_F             -> mode(SECTION_TITLE)
+  ;
+
+CONTENT_ATTR_START
+  : {isBOL()}? 
+     '['                         -> pushMode(ELEMENT_ATTR)
+  ;
+
+CONTENT_PARA                     
+  : {isBOL()}? 
+      ~[=[] .*? CONTENT_EOP 
+  ;
+
+
+CONTENT_COMMENT
+  : COMMENT_F                     -> channel(HIDDEN) 
   ;
 
 CONTENT_EOP
-  : EOLF EOLF+        -> popMode
+  : EOLF EOLF+                    //-> popMode
+  ;
+
+///////////////////
+mode ELEMENT_ATTR;
+
+
+ELEMENT_ATTR_ID
+  : ATTR_ID_F
+  ;
+
+ELEMENT_ATTR_COMMA
+  :  ','
+  ;
+
+ELEMENT_ATTR_ASSIGN
+  :  '='
+  ;
+
+ELEMENT_ATTR_END
+  :  ']'                        
+  ;
+
+ELEMENT_ATTR_EOL
+  :  EOLF                        -> popMode
+  ;
+
+ELEMENT_ATTR_VALUE
+  : ~[\],=]+
   ;
 
 

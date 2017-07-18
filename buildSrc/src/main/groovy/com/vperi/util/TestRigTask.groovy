@@ -15,6 +15,7 @@ class TestRigTask extends JavaExec {
   def startRule 
   def tree = true
   def image = true
+  def imageFormat = 'png'
   def tokens = false
   def trace = false
   def src
@@ -30,11 +31,13 @@ class TestRigTask extends JavaExec {
   public void exec() {
     def baseName = FilenameUtils.removeExtension(src.name);
     def list = [grammar, startRule]
+    def psName;
+
     if (tree) list += '-tree'
     if (image) {
       list += '-ps'
       new File(rigDir).mkdirs()
-      def psName = "${rigDir}/${baseName}.ps"
+      psName = "${rigDir}/${baseName}.ps"
       list += psName
     }
 
@@ -44,6 +47,12 @@ class TestRigTask extends JavaExec {
     
     args list
     super.exec();
+    //if (image && imageFormat != 'ps') {
+      //append %%EOF to the PS file
+     // new File(psName) << '%%EOF';  
+      //def imgName = "${rigDir}/${baseName}.${imageFormat}"
+      //ew PS2Image(src: psName, dest: imgName).convert(); 
+    //}
   }
 
 }

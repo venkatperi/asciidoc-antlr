@@ -9,7 +9,7 @@ asciidoc
 
 
 doc_header
-  : attributes? doc_title_line doc_author_line attributes? EOL+
+  : global_attrs? doc_title_line doc_author_line global_attrs? END_OF_HEADER
   ;
 
 doc_title_line
@@ -57,14 +57,14 @@ doc_author_contact
   ;
 
 ///////////////////////
-// attributes
+// global_attrs
 
-attributes
-  : attributes attribute
-  | attribute
+global_attrs
+  : global_attrs global_attr
+  | global_attr
   ;
 
-attribute
+global_attr
   : ATTR_BEGIN attr_id_def attr_value ATTR_EOL
   ;
 
@@ -99,11 +99,44 @@ doc_sections
   ;
 
 doc_section
-  : SEC_TITLE_START section_title sec_content_items
+  : element_attr_lines? 
+      (CONTENT_SEC_TITLE_START) 
+      section_title 
+      sec_content_items
   ;
 
 section_title
   :  SECTITLE_TEXT SECTITLE_EOL
+  ;
+
+
+///////////////////////
+// element attributes
+
+element_attr_lines
+  : element_attr_lines element_attr_line
+  | element_attr_line
+  ;
+
+element_attr_line
+  :  CONTENT_ATTR_START  element_attrs ELEMENT_ATTR_END ELEMENT_ATTR_EOL
+  ;
+
+element_attrs
+  : element_attrs ELEMENT_ATTR_COMMA element_attr
+  | element_attr
+  ;
+
+element_attr
+  : element_attr_id (ELEMENT_ATTR_ASSIGN element_attr_value)?
+  ;
+
+element_attr_id
+  : ELEMENT_ATTR_ID
+  ;
+
+element_attr_value
+  : ELEMENT_ATTR_VALUE
   ;
 
 
