@@ -17,6 +17,7 @@ pre_header_lines
 
 pre_header_line
   : global_attr
+  | pp_directive
   | EOL
   ;
 
@@ -24,12 +25,22 @@ pre_header_line
 // doc header
 
 doc_header
-  : doc_title_line doc_author_rev_line? global_attrs? END_OF_HEADER
+  : doc_title_line doc_author_rev_line? doc_header_lines? END_OF_HEADER
   ;
 
 // You cannot have a revision line without an author line.
 doc_author_rev_line
   : doc_author_line doc_revision_line?
+  ;
+
+doc_header_lines
+  : doc_header_lines doc_header_line
+  | doc_header_line
+  ;
+
+doc_header_line
+  : global_attr
+  | pp_directive
   ;
 
 ///////////////////////
@@ -271,3 +282,25 @@ paragraph
   : CONTENT_PARA
   ;
   
+///////////////////////
+// conditional pre-processor directives
+
+
+pp_directive
+  : PPD_START ppd_attrs ppd_content
+  ;
+
+ppd_attrs
+  : ppd_attrs PPD_ATTR_SEP ppd_attr
+  | ppd_attr
+  ;
+
+ppd_attr
+  : PPD_ATTR_ID
+  ;
+
+ppd_content
+  : PPD_CONTENT_SINGLELINE
+  | PPD_CONTENT_START PPD_CONTENT
+  ;
+

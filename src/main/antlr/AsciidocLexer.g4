@@ -2,23 +2,28 @@ lexer grammar AsciidocLexer;
 
 @lexer::members {
 
-  public boolean isBOL() {
-    return _input.LA(-1) == '\n';
-  }
+  public boolean isBOL() { return _input.LA(-1) == '\n'; }
 
 }
 
 ///////////////////
-// default mode = header?
+// default mode 
 
 H0  
   : {isBOL()}?  
-      EQUAL WS                      -> pushMode(DOCTITLE)
+      EQUAL WS                    -> pushMode(DOCTITLE)
   ;
 
 ATTR_BEGIN
   : { isBOL() }?  
       COLON                       -> pushMode(ATTR)
+  ;
+
+PPD_START
+  : { isBOL() }? 
+      ( 'ifdef' 
+      | 'ifndef' 
+      | 'ifeval' ) '::' WS_CHAR*  -> pushMode(PPMODE)
   ;
 
 COMMENT
@@ -361,7 +366,6 @@ ELEMENT_ATTR_VALUE_UNQUOTED
   : ~['"\],\r\n ]*?
   ;
 
-
 ELEMENT_ATTR_VALUE
   : ( ELEMENT_ATTR_VALUE_QUOTED_SINGLE                               
     | ELEMENT_ATTR_VALUE_QUOTED_DOUBLE
@@ -379,5 +383,31 @@ CONTENT_TITLE_EOL
   : EOLF                                  -> popMode
   ;
 
+
+///////////////////
+mode PPMODE;
+
+PPD_ATTR_ID
+  : ATTR_ID_F
+  ;
+
+PPD_ATTR_SEP
+  : WS_CHAR* [+,] WS_CHAR*
+  ;
+
+PPD_CONTENT_SINGLELINE
+  :  '[' ~[\]\r\n]+ ']' EOLF                     -> popMode
+  ;
+
+PPD_CONTENT_START
+  :  '[]' EOLF                                   -> mode(PPCONTENT)
+  ;
+
+///////////////////
+mode PPCONTENT;
+
+PPD_CONTENT
+  : .*? EOLF 'endif::[]' EOLF                    -> popMode
+  ;
 
 
