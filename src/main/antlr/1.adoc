@@ -1,6 +1,7 @@
 
 = This is the title: this is the subtitle
 First Author <author1@gmail.com>; Second Author <author2@gmail.com>
+v1.0,
 :leveloffset: 3
 
 == Chapter 1

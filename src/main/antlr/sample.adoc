@@ -1,6 +1,7 @@
 
 = This is the title: this also part of the title: this is the subtitle
 First Author <author1@gmail.com>; Second Author <author2@gmail.com>
+v1.0, October 2, 2013: First incarnation
 :leveloffset: 3
 :set_to_value: value
 :uri-fedpkg: https://apps.fedoraproject.org/packages/asciidoc

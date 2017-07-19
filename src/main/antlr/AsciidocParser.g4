@@ -3,22 +3,37 @@ parser grammar AsciidocParser;
 
 options { tokenVocab = AsciidocLexer; }
 
-//Start rule
+///////////////////////
+// start rule
+
 asciidoc
-  : EOL*    
-    doc_header 
-    doc_sections 
-    EOF
+  : pre_header_lines? doc_header doc_sections EOF
   ;
 
+pre_header_lines
+  : pre_header_lines pre_header_line
+  | pre_header_line
+  ;
+
+pre_header_line
+  : global_attr
+  | EOL
+  ;
+
+///////////////////////
+// doc header
 
 doc_header
-  : global_attrs? 
-    doc_title_line 
-    doc_author_line 
-    global_attrs? 
-    END_OF_HEADER
+  : doc_title_line doc_author_rev_line? global_attrs? END_OF_HEADER
   ;
+
+// You cannot have a revision line without an author line.
+doc_author_rev_line
+  : doc_author_line doc_revision_line?
+  ;
+
+///////////////////////
+// doc title
 
 doc_title_line
   : H0 doc_title_def
@@ -37,7 +52,7 @@ doc_subtitle
   ;
 
 ///////////////////////
-//author line
+// doc author 
 
 doc_author_line
   : doc_authors DOCAUTHOR_EOL
@@ -73,6 +88,27 @@ doc_author_lastname
 
 doc_author_contact
   : DOCAUTHOR_CONTACT
+  ;
+
+///////////////////////
+// doc revision
+
+doc_revision_line
+  : (DOCREV_NUMPREFIX? doc_rev_number DOCREV_COMMA)? 
+    doc_rev_date?
+    (DOCREV_COLON doc_rev_remark)? DOCREV_EOL
+  ;
+
+doc_rev_number
+  : DOCREV_NUMBER
+  ;
+
+doc_rev_date
+  : DOCREV_DATE
+  ;
+
+doc_rev_remark
+  : DOCREV_REMARK
   ;
 
 ///////////////////////
@@ -151,7 +187,6 @@ element_attr_line
   ;
 
 element_attrs
-  //: element_positional_attrs? element_named_attrs?
   : element_attrs ELEMENT_ATTR_COMMA element_attr
   | element_attr
   ;
@@ -160,11 +195,6 @@ element_attr
   : element_named_attr
   | element_positional_attr
   ;
-
-//element_positional_attrs
-  //: element_positional_attrs ELEMENT_ATTR_COMMA element_positional_attr 
-  //| element_positional_attr
-  //;
 
 element_positional_attr
   : element_pos_prefixed_attrs
@@ -193,11 +223,6 @@ element_pos_attr_id
 element_pos_attr_option
   : ELEMENT_ATTR_TYPE_OPTION element_attr_id
   ;
-
-//element_named_attrs
-  //: element_named_attrs ELEMENT_ATTR_COMMA element_named_attr
-  //| element_named_attr
-  //;
 
 element_named_attr
   : element_attr_id ELEMENT_ATTR_ASSIGN element_attr_value

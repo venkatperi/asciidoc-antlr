@@ -13,7 +13,7 @@ lexer grammar AsciidocLexer;
 
 H0  
   : {isBOL()}?  
-      '=' WS                      -> pushMode(DOCTITLE)
+      EQUAL WS                      -> pushMode(DOCTITLE)
   ;
 
 ATTR_BEGIN
@@ -74,6 +74,21 @@ SEMI
   ;
 
 fragment
+COMMA
+  : ','               
+  ;
+
+fragment
+EQUAL
+  : '='               
+  ;
+
+fragment
+HASH
+  : '#'               
+  ;
+
+fragment
 PERCENT
   : '%'               
   ;
@@ -102,6 +117,11 @@ fragment
 SPACE
   : ' '
   ;
+
+fragment 
+DIGIT 
+  : [0-9] 
+  ; 
 
 fragment
 ATTR_ID_F
@@ -142,13 +162,63 @@ DOCAUTHOR_SEP
   ;
 
 DOCAUTHOR_EOL
-  : EOLF                          -> popMode
+  : EOLF                          -> mode(DOCREV)
   ;
 
 DOCAUTHOR_WS 
   : WS                            -> channel(HIDDEN) 
   ;
 
+
+///////////////////
+mode DOCREV;
+
+
+DOCREV_NUMPREFIX
+  : [vV] 
+  ;
+
+DOCREV_NUMBER
+  : DIGIT+ (PERIOD DIGIT+)*
+  ;
+
+DOCREV_COMMA
+  : COMMA WS_CHAR*                -> mode(DOCREV_DATE_MODE)
+  ;
+
+DOCREV_COLON
+  : COLON WS_CHAR*                -> mode(DOCREV_REM)
+  ;
+
+DOCREV_EOL
+  : EOLF                          -> popMode
+  ;
+
+///////////////////
+mode DOCREV_DATE_MODE;
+
+DOCREV_DATE
+  : ~[:\r\n]+
+  ;
+
+DOCREV_DATE_COLON
+  : COLON WS_CHAR*               -> type(DOCREV_COLON), mode(DOCREV_REM)
+  ;
+
+DOCREV_DATE_EOL
+  : EOLF                         -> type(DOCREV_EOL), popMode
+  ;
+
+///////////////////
+mode DOCREV_REM;
+
+DOCREV_REMARK
+  : ~[\r\n]+  
+  ;
+
+DOCREV_REMARK_EOL
+  : EOLF                          -> type(DOCREV_EOL), popMode
+  ;
 
 ///////////////////
 mode ATTR;
@@ -229,11 +299,11 @@ ELEMENT_ATTR_ID
   ;
 
 ELEMENT_ATTR_COMMA
-  :  WS_CHAR* ',' WS_CHAR*
+  :  WS_CHAR* COMMA WS_CHAR*
   ;
 
 ELEMENT_ATTR_ASSIGN
-  :  WS_CHAR* '='                         -> pushMode(ELEMENT_ATTR_VAL)
+  :  WS_CHAR* EQUAL                        -> pushMode(ELEMENT_ATTR_VAL)
   ;
 
 ELEMENT_ATTR_TYPE_ROLE
@@ -245,7 +315,7 @@ ELEMENT_ATTR_TYPE_OPTION
   ;
 
 ELEMENT_ATTR_TYPE_ID
-  :  WS_CHAR* '#'                        
+  :  WS_CHAR* HASH                       
   ;
 
 ELEMENT_ATTR_UNSET
