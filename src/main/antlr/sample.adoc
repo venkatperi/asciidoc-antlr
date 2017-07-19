@@ -14,7 +14,7 @@ so it remains readable to folks reading your docs code.
 :set_to_true:
 
 
-[#chapter-1, attr2, attr3=some value]
+[#chapter-1, attr2, attr3="some value"]
 == Chapter 1 
 
 This is a sample paragraph.

@@ -79,6 +79,16 @@ ESC
   ;
 
 fragment
+SINGLE_QUOTE
+  : '\''               
+  ;
+
+fragment
+DOUBLE_QUOTE
+  : '"'               
+  ;
+
+fragment
 COMMA
   : ','               
   ;
@@ -336,8 +346,26 @@ ELEMENT_ATTR_EOL
 ///////////////////
 mode ELEMENT_ATTR_VAL;
 
+fragment 
+ELEMENT_ATTR_VALUE_QUOTED_SINGLE
+  : SINGLE_QUOTE (~['\r\n] | (ESC SINGLE_QUOTE))*? SINGLE_QUOTE
+  ;
+
+fragment 
+ELEMENT_ATTR_VALUE_QUOTED_DOUBLE
+  : DOUBLE_QUOTE (~["\r\n] | (ESC DOUBLE_QUOTE))*? DOUBLE_QUOTE
+  ;
+
+fragment 
+ELEMENT_ATTR_VALUE_UNQUOTED
+  : ~['"\],\r\n ]*?
+  ;
+
+
 ELEMENT_ATTR_VALUE
-  : ~[\],]+                               -> popMode
+  : ( ELEMENT_ATTR_VALUE_QUOTED_SINGLE                               
+    | ELEMENT_ATTR_VALUE_QUOTED_DOUBLE
+    | ELEMENT_ATTR_VALUE_UNQUOTED )           -> popMode
   ;
 
 ///////////////////
