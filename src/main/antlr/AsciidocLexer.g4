@@ -74,6 +74,11 @@ SEMI
   ;
 
 fragment
+PERCENT
+  : '%'               
+  ;
+
+fragment
 PERIOD
   : '.'               
   ;
@@ -233,6 +238,10 @@ ELEMENT_ATTR_ASSIGN
 
 ELEMENT_ATTR_TYPE_ROLE
   :  WS_CHAR* PERIOD                        
+  ;
+
+ELEMENT_ATTR_TYPE_OPTION
+  :  WS_CHAR* PERCENT                        
   ;
 
 ELEMENT_ATTR_TYPE_ID

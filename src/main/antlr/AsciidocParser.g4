@@ -151,32 +151,56 @@ element_attr_line
   ;
 
 element_attrs
+  //: element_positional_attrs? element_named_attrs?
   : element_attrs ELEMENT_ATTR_COMMA element_attr
   | element_attr
   ;
 
 element_attr
-  : element_attr_id_def (ELEMENT_ATTR_ASSIGN element_attr_value)?
+  : element_named_attr
+  | element_positional_attr
   ;
 
-element_attr_id_def
-  : ( element_attr_unset 
-    | element_attr_type_role
-    | element_attr_type_id
-    ) element_attr_id
-  | element_attr_id element_attr_unset?
+//element_positional_attrs
+  //: element_positional_attrs ELEMENT_ATTR_COMMA element_positional_attr 
+  //| element_positional_attr
+  //;
+
+element_positional_attr
+  : element_pos_prefixed_attrs
+  | element_attr_id     //style etc 
   ;
 
-element_attr_unset
-  : ELEMENT_ATTR_UNSET
+element_pos_prefixed_attrs
+  : element_pos_prefixed_attrs element_pos_prefixed_attr
+  | element_pos_prefixed_attr
   ;
 
-element_attr_type_role
-  : ELEMENT_ATTR_TYPE_ROLE
+element_pos_prefixed_attr
+  : element_pos_attr_role
+  | element_pos_attr_id
+  | element_pos_attr_id
   ;
 
-element_attr_type_id
-  : ELEMENT_ATTR_TYPE_ID
+element_pos_attr_role
+  : ELEMENT_ATTR_TYPE_ROLE element_attr_id
+  ;
+
+element_pos_attr_id
+  : ELEMENT_ATTR_TYPE_ID element_attr_id
+  ;
+
+element_pos_attr_option
+  : ELEMENT_ATTR_TYPE_OPTION element_attr_id
+  ;
+
+//element_named_attrs
+  //: element_named_attrs ELEMENT_ATTR_COMMA element_named_attr
+  //| element_named_attr
+  //;
+
+element_named_attr
+  : element_attr_id ELEMENT_ATTR_ASSIGN element_attr_value
   ;
 
 element_attr_id

@@ -18,7 +18,7 @@ So is this.
 
 This is teh second paragraph.
 
-[.lead]
+[.lead.color#someid]
 And this is the third.
 
 
