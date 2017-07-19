@@ -147,12 +147,11 @@ DOCTITLE_EOL
 ///////////////////
 mode DOCAUTHOR;
 
-// extend for unicode, special chars etc. 
+// any non-whitespace char 
 DOCAUTHOR_NAME
-  : [-_a-zA-Z]+
+  : ~[ <>;\r\n]+
   ;
 
-// doesn't parse email/url
 DOCAUTHOR_CONTACT
   : LT .*? GT 
   ;
