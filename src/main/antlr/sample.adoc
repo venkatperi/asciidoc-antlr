@@ -5,6 +5,10 @@ v1.0, October 2, 2013: First incarnation
 :leveloffset: 3
 :set_to_value: value
 :uri-fedpkg: https://apps.fedoraproject.org/packages/asciidoc
+:long-value: If you have a very long line of text \
+that you need to substitute regularly in a document, \
+you may find it easier to split it neatly in the header \
+so it remains readable to folks reading your docs code.
 :!unset_left:
 :unset_right!:
 :set_to_true:

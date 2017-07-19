@@ -74,6 +74,11 @@ SEMI
   ;
 
 fragment
+ESC
+  : '\\'               
+  ;
+
+fragment
 COMMA
   : ','               
   ;
@@ -142,7 +147,6 @@ DOCTITLE_PART
 DOCTITLE_EOL
   : EOLF                            -> mode(DOCAUTHOR)
   ;
-
 
 ///////////////////
 mode DOCAUTHOR;
@@ -239,7 +243,7 @@ ATTR_SEP
 mode ATTR_VALUE_MODE;
 
 ATTR_VALUE
-  : ~[\r\n]+      
+  : (~[\\\r\n] | (ESC EOLF) )+      
   ;
 
 ATTR_EOL
