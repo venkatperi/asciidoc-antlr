@@ -255,7 +255,7 @@ block_attr_value
 
 sec_body_items
   : sec_body_items sec_body_item 
-  | sec_body_item
+  | sec_body_item 
   ;
 
 sec_body_item
@@ -298,7 +298,48 @@ block_title
 // delimited blocks 
 
 delim_block
-  :  sidebar_block
+  : (sidebar_block
+    | comment_block
+    | fenced_block
+    | example_block
+    | listing_block
+    | literal_block
+    | pass_block
+    | verse_block
+    | table_block
+    )
+  ;
+
+table_block
+  :  BLOCK_TABLE_START delim_block_content DELIM_BLOCK_END
+  ;
+
+comment_block
+  :  BLOCK_COMMENT_START delim_block_content DELIM_BLOCK_END
+  ;
+
+fenced_block
+  :  BLOCK_FENCED_START delim_block_content DELIM_BLOCK_END
+  ;
+
+example_block
+  :  BLOCK_EXAMPLE_START delim_block_content DELIM_BLOCK_END
+  ;
+
+listing_block
+  :  BLOCK_LISTING_START delim_block_content DELIM_BLOCK_END
+  ;
+
+literal_block
+  :  BLOCK_LITERAL_START delim_block_content DELIM_BLOCK_END
+  ;
+
+pass_block
+  :  BLOCK_PASS_START delim_block_content DELIM_BLOCK_END
+  ;
+
+verse_block
+  :  BLOCK_VERSE_START delim_block_content DELIM_BLOCK_END
   ;
 
 sidebar_block

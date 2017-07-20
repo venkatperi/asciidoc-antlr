@@ -32,5 +32,18 @@ part of subsection 2.1
 sidebar content
 *****
 
+++++
+passthru block
+++++
 
+.A Table
+|===
+
+| Cell in column 1, row 1 | Cell in column 2, row 1  
+
+| Cell in column 1, row 2 | Cell in column 2, row 2
+
+| Cell in column 1, row 3 | Cell in column 2, row 3
+
+|=== 
 

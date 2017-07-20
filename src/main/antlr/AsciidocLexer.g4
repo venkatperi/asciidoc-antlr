@@ -16,6 +16,11 @@ tokens {
   private boolean isBOL = false;
   //public boolean isBOL { return _input.LA(-1) == '\n'; }
 
+  public void startDelimBlock() {
+    delimBlockBoundary = getText().trim();
+    pushMode(DELIM_CONTENT);
+  }
+
   public boolean isDelimEnd() {
     if (!isBOL || delimBlockBoundary == null) return false;
 
@@ -383,52 +388,114 @@ BLOCK_EOP
 ///////////////////
 // delimited blocks
 
+
 BLOCK_TABLE_START
-  : {isBOL}? '|===' EOLF         
+  : {isBOL}? 
+    '|===' WS_CHAR* EOLF
+    { startDelimBlock(); }
   ;
 
 BLOCK_COMMENT_START
-  : {isBOL}? '////' EOLF         
+  : {isBOL}? 
+    ( '////' 
+    | '/////'
+    | '//////'
+    | '///////'
+    | '////////'
+    | '/////////'
+    | '//////////'
+    )
+    WS_CHAR* EOLF
+    { startDelimBlock(); }
   ;
 
 BLOCK_EXAMPLE_START
-  : {isBOL}? '====' EOLF         
+  : {isBOL}? 
+    ( '====' 
+    | '====='
+    | '======'
+    | '======='
+    | '========'
+    | '========='
+    | '=========='
+    )
+    WS_CHAR* EOLF
+    { startDelimBlock(); }
   ;
 
 BLOCK_FENCED_START
-  : {isBOL}? '```' EOLF         
+  : {isBOL}? '```' 
+    WS_CHAR* EOLF         
   ;
 
 BLOCK_LISTING_START
-  : {isBOL}? '----' EOLF         
+  : {isBOL}? 
+    ( '----' 
+    | '-----'
+    | '------'
+    | '-------'
+    | '--------'
+    | '---------'
+    | '----------'
+    )
+    WS_CHAR* EOLF         
+    { startDelimBlock(); }
   ;
 
 BLOCK_LITERAL_START
-  : {isBOL}? '....' EOLF         
+  : {isBOL}? 
+    ( '....' 
+    | '.....'
+    | '......'
+    | '.......'
+    | '........'
+    | '.........'
+    | '..........'
+    )
+    WS_CHAR* EOLF
+    { startDelimBlock(); }
   ;
 
 BLOCK_PASS_START
-  : {isBOL}? '++++' EOLF         
+  : {isBOL}? 
+    ( '++++' 
+    | '+++++'
+    | '++++++'
+    | '+++++++'
+    | '++++++++'
+    | '+++++++++'
+    | '++++++++++'
+    )
+    WS_CHAR* EOLF         
+    { startDelimBlock(); }
   ;
 
 BLOCK_SIDEBAR_START
   : {isBOL}? 
-  ( '****' 
-  | '*****'
-  | '******'
-  | '*******'
-  | '********'
-  | '*********'
-  | '**********'
-  ) EOLF          
-  {
-    delimBlockBoundary = getText().trim();
-    pushMode(DELIM_CONTENT);
-  }
+    ( '****' 
+    | '*****'
+    | '******'
+    | '*******'
+    | '********'
+    | '*********'
+    | '**********'
+    ) 
+    WS_CHAR* EOLF          
+  { startDelimBlock(); }
   ;
 
 BLOCK_VERSE_START
-  : {isBOL}? '____' EOLF         
+  : {isBOL}? 
+    ( '____' 
+    | '_____'
+    | '______'
+    | '_______'
+    | '________'
+    | '_________'
+    | '__________'
+    )
+    W_CHAR* EOLF
+    { startDelimBlock(); }
   ;
 
 ///////////////////
@@ -545,10 +612,9 @@ DELIM_BLOCK_LINE
 DELIM_BLOCK_END           
   : {isBOL}? 
     ~[\r\n]+   
-    EOLF
+    EOLF+
     {getText().trim().equals(delimBlockBoundary)}?
     {
-      System.out.println("got delim end");
       popMode();
     }
   ;
