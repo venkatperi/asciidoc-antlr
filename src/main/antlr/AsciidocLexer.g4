@@ -344,10 +344,15 @@ mode BLOCK;
 SECTITLE_START  
   : SEC_TITLE_START_F               
   {
-    int level = getText().length();
+    int level = getText().trim().length() - 1;
 		if (level <= currentSectionLevel) {
 			for (int i=0; i<=currentSectionLevel - level; i++)
 				emit(SECTION_END);	
+		}
+		else if (level > currentSectionLevel + 1) {
+			throw new RuntimeException("line " + getLine() + ":" + getCharPositionInLine() 
+				+ " Illegal subsection header: found :" + level 
+				+ ", required: " + (currentSectionLevel + 1));
 		}
 		currentSectionLevel = level;
     mode(SECTION_TITLE);

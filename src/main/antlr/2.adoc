@@ -1,0 +1,33 @@
+
+= This is the title: this is the subtitle
+First Author <author1@gmail.com>; Second Author <author2@gmail.com>
+v1.0,
+:leveloffset: 3
+
+== Chapter 1
+
+This is a sample paragraph.
+This is the second line of the first para
+Also part of first para.
+
+This is the second para.
+
+==== Subsection 1:1
+
+part of subsection 1:1
+
+=== Subsection 1:2
+
+part of subsection 1:2
+
+== Chapter 2
+
+This is chapter 2
+
+=== Subsection 2.1
+
+part of subsection 2.1
+
+
+
+
