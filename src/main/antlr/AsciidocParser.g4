@@ -1,5 +1,8 @@
 parser grammar AsciidocParser;
 
+@members {
+  private int sectionLevel = 0;
+}
 
 options { tokenVocab = AsciidocLexer; }
 
@@ -7,7 +10,7 @@ options { tokenVocab = AsciidocLexer; }
 // start rule
 
 asciidoc
-  : pre_header_lines? doc_header doc_sections EOF
+  : pre_header_lines? header sections EOF
   ;
 
 pre_header_lines
@@ -24,21 +27,21 @@ pre_header_line
 ///////////////////////
 // doc header
 
-doc_header
-  : doc_title_line doc_author_rev_line? doc_header_lines? END_OF_HEADER
+header
+  : doc_title_line author_rev_line? header_lines? END_OF_HEADER
   ;
 
 // You cannot have a revision line without an author line.
-doc_author_rev_line
-  : doc_author_line doc_revision_line?
+author_rev_line
+  : author_line revision_line?
   ;
 
-doc_header_lines
-  : doc_header_lines doc_header_line
-  | doc_header_line
+header_lines
+  : header_lines header_line
+  | header_line
   ;
 
-doc_header_line
+header_line
   : global_attr
   | pp_directive
   ;
@@ -65,61 +68,61 @@ doc_subtitle
 ///////////////////////
 // doc author 
 
-doc_author_line
-  : doc_authors DOCAUTHOR_EOL
+author_line
+  : authors AUTHOR_EOL
   ;
 
-doc_authors
-  : doc_authors DOCAUTHOR_SEP doc_author
-  | doc_author
+authors
+  : authors AUTHOR_SEP author
+  | author
   ;
 
-doc_author
-  : doc_author_name 
-    doc_author_contact 
+author
+  : author_name 
+    author_contact 
   ;
   
-doc_author_name
-  : doc_author_firstname 
-    doc_author_middlename? 
-    doc_author_lastname
+author_name
+  : author_firstname 
+    author_middlename? 
+    author_lastname
   ;
 
-doc_author_firstname
-  : DOCAUTHOR_NAME
+author_firstname
+  : AUTHOR_NAME
   ;
 
-doc_author_middlename
-  : DOCAUTHOR_NAME
+author_middlename
+  : AUTHOR_NAME
   ;
 
-doc_author_lastname
-  : DOCAUTHOR_NAME
+author_lastname
+  : AUTHOR_NAME
   ;
 
-doc_author_contact
-  : DOCAUTHOR_CONTACT
+author_contact
+  : AUTHOR_CONTACT
   ;
 
 ///////////////////////
 // doc revision
 
-doc_revision_line
-  : (DOCREV_NUMPREFIX? doc_rev_number DOCREV_COMMA)? 
-    doc_rev_date?
-    (DOCREV_COLON doc_rev_remark)? DOCREV_EOL
+revision_line
+  : (REV_NUMPREFIX? rev_number REV_COMMA)? 
+    rev_date?
+    (REV_COLON rev_remark)? REV_EOL
   ;
 
-doc_rev_number
-  : DOCREV_NUMBER
+rev_number
+  : REV_NUMBER
   ;
 
-doc_rev_date
-  : DOCREV_DATE
+rev_date
+  : REV_DATE
   ;
 
-doc_rev_remark
-  : DOCREV_REMARK
+rev_remark
+  : REV_REMARK
   ;
 
 ///////////////////////
@@ -163,128 +166,134 @@ attr_value
 ///////////////////////
 // doc sections
 
-doc_sections
-  : doc_sections doc_section
-  | doc_section
+sections
+  : sections section
+  | section
   ;
 
-doc_section
-  : section_start_lines sec_content_items
+section
+  : section_start_lines sec_body_items (SECTION_END | EOF)
   ;
 
 section_start_lines
-  : element_attr_lines? section_title_line 
+  : block_attr_lines? section_title_line 
   ;
 
 section_title_line
-  : CONTENT_SEC_TITLE_START section_title SECTITLE_EOL
+  : SECTITLE_START section_title SECTITLE_EOL  
   ;
 
 section_title
   :  SECTITLE_TEXT 
   ;
 
-
 ///////////////////////
 // element attributes
 
-element_attr_lines
-  : element_attr_lines element_attr_line
-  | element_attr_line
+block_attr_lines
+  : block_attr_lines block_attr_line
+  | block_attr_line
   ;
 
-element_attr_line
-  :  CONTENT_ATTR_START  element_attrs ELEMENT_ATTR_END ELEMENT_ATTR_EOL
+block_attr_line
+  :  BLOCK_ATTR_START  block_attrs BLOCK_ATTR_END BLOCK_ATTR_EOL
   ;
 
-element_attrs
-  : element_attrs ELEMENT_ATTR_COMMA element_attr
-  | element_attr
+block_attrs
+  : block_attrs BLOCK_ATTR_COMMA block_attr
+  | block_attr
   ;
 
-element_attr
-  : element_named_attr
-  | element_positional_attr
+block_attr
+  : block_named_attr
+  | block_positional_attr
   ;
 
-element_positional_attr
-  : element_pos_prefixed_attrs
-  | element_attr_id     //style etc 
+block_positional_attr
+  : block_pos_prefixed_attrs
+  | block_attr_id     //style etc 
   ;
 
-element_pos_prefixed_attrs
-  : element_pos_prefixed_attrs element_pos_prefixed_attr
-  | element_pos_prefixed_attr
+block_pos_prefixed_attrs
+  : block_pos_prefixed_attrs block_pos_prefixed_attr
+  | block_pos_prefixed_attr
   ;
 
-element_pos_prefixed_attr
-  : element_pos_attr_role
-  | element_pos_attr_id
-  | element_pos_attr_id
+block_pos_prefixed_attr
+  : block_pos_attr_role
+  | block_pos_attr_id
+  | block_pos_attr_id
   ;
 
-element_pos_attr_role
-  : ELEMENT_ATTR_TYPE_ROLE element_attr_id
+block_pos_attr_role
+  : BLOCK_ATTR_TYPE_ROLE block_attr_id
   ;
 
-element_pos_attr_id
-  : ELEMENT_ATTR_TYPE_ID element_attr_id
+block_pos_attr_id
+  : BLOCK_ATTR_TYPE_ID block_attr_id
   ;
 
-element_pos_attr_option
-  : ELEMENT_ATTR_TYPE_OPTION element_attr_id
+block_pos_attr_option
+  : BLOCK_ATTR_TYPE_OPTION block_attr_id
   ;
 
-element_named_attr
-  : element_attr_id ELEMENT_ATTR_ASSIGN element_attr_value
+block_named_attr
+  : block_attr_id BLOCK_ATTR_ASSIGN block_attr_value
   ;
 
-element_attr_id
-  : ELEMENT_ATTR_ID
+block_attr_id
+  : BLOCK_ATTR_ID
   ;
 
-element_attr_value
-  : ELEMENT_ATTR_VALUE
+block_attr_value
+  : BLOCK_ATTR_VALUE
   ;
 
 
 ///////////////////////
 // section content 
 
-sec_content_items
-  : sec_content_items sec_content_item 
-  | sec_content_item
+sec_body_items
+  : sec_body_items sec_body_item 
+  | sec_body_item
   ;
 
-sec_content_item
-  : sec_content_metas? paragraph 
+sec_body_item
+  : body_item_metas? body_item
   ;
 
-sec_content_metas
-  : sec_content_metas sec_content_meta
-  | sec_content_meta
+body_item_metas  
+  : body_item_metas body_item_meta
+  | body_item_meta
   ;
 
-sec_content_meta
-  : element_attr_line
-  //| content_title_line
+body_item_meta
+  : block_attr_line
+  | block_title_line
   ;
 
-//content_title_line
-  //: CONTENT_TITLE_START content_title_text CONTENT_TITLE_EOL
-  //;
-
-//content_title_text
-  //: CONTENT_TITLE_TEXT
-  //;
+body_item
+  : paragraph
+  | section
+  ;
 
 paragraph
-  : CONTENT_PARA
+  : BLOCK_PARA
+  ;
+  
+///////////////////////
+// block/element title mode 
+
+block_title_line
+  : BLOCK_TITLE_START block_title
+  ;
+
+block_title
+  : BLOCK_TITLE_TEXT BLOCK_TITLE_EOL
   ;
   
 ///////////////////////
 // conditional pre-processor directives
-
 
 pp_directive
   : PPD_START ppd_attrs ppd_content

@@ -1,8 +1,43 @@
 lexer grammar AsciidocLexer;
 
+tokens {
+  SECTION_END
+}
+
+@header {
+  import java.util.ArrayDeque;
+}
+
 @lexer::members {
 
+  private ArrayDeque<Token> tokenQueue = new ArrayDeque<Token>();
+  private int currentSectionLevel = 0;
   public boolean isBOL() { return _input.LA(-1) == '\n'; }
+
+	public void emit(int type) {
+		Token t = _factory.create(_tokenFactorySourcePair, type, null, _channel, 
+								_tokenStartCharIndex, getCharIndex()-1, _tokenStartLine, 
+								_tokenStartCharPositionInLine);
+		emit(t);
+	}
+
+  @Override public void emit(Token t) {
+    tokenQueue.add(t);
+  }
+
+	@Override
+	public Token nextToken() {
+		if (tokenQueue.peek() != null) {
+			return tokenQueue.remove();
+		}
+
+		super.nextToken();
+
+		if (tokenQueue.peek() != null) {
+			return tokenQueue.remove();
+		}
+		return null;
+	}
 
 }
 
@@ -32,7 +67,7 @@ COMMENT
 
 END_OF_HEADER
   : { isBOL() }? 
-      EOLF+                       -> pushMode(CONTENT)
+      EOLF+                       -> pushMode(BLOCK)
   ;
 
 EOL
@@ -57,6 +92,32 @@ SEC_TITLE_START_F
       | '=====' | '###'
       | '======' | '##' ) WS_CHAR+
     ;
+
+fragment
+H1
+  : '=='  
+  ;
+
+fragment
+H2
+  : '==='  
+  ;
+
+fragment
+H3
+  : '===='  
+  ;
+
+fragment
+H4
+  : '====='  
+  ;
+
+fragment
+H5
+  : '======'  
+  ;
+
 
 fragment
 EOLF
@@ -160,82 +221,82 @@ DOCTITLE_PART
   ;
 
 DOCTITLE_EOL
-  : EOLF                            -> mode(DOCAUTHOR)
+  : EOLF                            -> mode(AUTHOR)
   ;
 
 ///////////////////
-mode DOCAUTHOR;
+mode AUTHOR;
 
 // any non-whitespace char 
-DOCAUTHOR_NAME
+AUTHOR_NAME
   : ~[ <>;\r\n]+
   ;
 
-DOCAUTHOR_CONTACT
+AUTHOR_CONTACT
   : LT .*? GT 
   ;
 
-DOCAUTHOR_SEP
+AUTHOR_SEP
   : SEMI               
   ;
 
-DOCAUTHOR_EOL
-  : EOLF                          -> mode(DOCREV)
+AUTHOR_EOL
+  : EOLF                          -> mode(REV)
   ;
 
-DOCAUTHOR_WS 
+AUTHOR_WS 
   : WS                            -> channel(HIDDEN) 
   ;
 
 
 ///////////////////
-mode DOCREV;
+mode REV;
 
 
-DOCREV_NUMPREFIX
+REV_NUMPREFIX
   : [vV] 
   ;
 
-DOCREV_NUMBER
+REV_NUMBER
   : DIGIT+ (PERIOD DIGIT+)*
   ;
 
-DOCREV_COMMA
-  : COMMA WS_CHAR*                -> mode(DOCREV_DATE_MODE)
+REV_COMMA
+  : COMMA WS_CHAR*                -> mode(REV_DATE_MODE)
   ;
 
-DOCREV_COLON
-  : COLON WS_CHAR*                -> mode(DOCREV_REM)
+REV_COLON
+  : COLON WS_CHAR*                -> mode(REV_REM)
   ;
 
-DOCREV_EOL
+REV_EOL
   : EOLF                          -> popMode
   ;
 
 ///////////////////
-mode DOCREV_DATE_MODE;
+mode REV_DATE_MODE;
 
-DOCREV_DATE
+REV_DATE
   : ~[:\r\n]+
   ;
 
-DOCREV_DATE_COLON
-  : COLON WS_CHAR*               -> type(DOCREV_COLON), mode(DOCREV_REM)
+REV_DATE_COLON
+  : COLON WS_CHAR*               -> type(REV_COLON), mode(REV_REM)
   ;
 
-DOCREV_DATE_EOL
-  : EOLF                         -> type(DOCREV_EOL), popMode
+REV_DATE_EOL
+  : EOLF                         -> type(REV_EOL), popMode
   ;
 
 ///////////////////
-mode DOCREV_REM;
+mode REV_REM;
 
-DOCREV_REMARK
+REV_REMARK
   : ~[\r\n]+  
   ;
 
-DOCREV_REMARK_EOL
-  : EOLF                          -> type(DOCREV_EOL), popMode
+REV_REMARK_EOL
+  : EOLF                          -> type(REV_EOL), popMode
   ;
 
 ///////////////////
@@ -273,113 +334,122 @@ SECTITLE_TEXT
   ;
 
 SECTITLE_EOL
-  : EOLF+                           -> mode(CONTENT)
+  : EOLF+                           -> mode(BLOCK)
   ;
 
 
 ///////////////////
-mode CONTENT;
+mode BLOCK;
 
+SECTITLE_START  
+  : SEC_TITLE_START_F               
+  {
+    int level = getText().length();
+		if (level <= currentSectionLevel) {
+			for (int i=0; i<=currentSectionLevel - level; i++)
+				emit(SECTION_END);	
+		}
+		currentSectionLevel = level;
+    mode(SECTION_TITLE);
+  }
 
-CONTENT_SEC_TITLE_START  
-  : SEC_TITLE_START_F               -> mode(SECTION_TITLE)
   ;
 
-CONTENT_ATTR_START
+BLOCK_ATTR_START
   : {isBOL()}? 
-     '[' WS_CHAR*                   -> pushMode(ELEMENT_ATTR)
+     '[' WS_CHAR*                   -> pushMode(BLOCK_ATTR)
   ;
 
-//CONTENT_TITLE_START
-  //: {isBOL()}? 
-     //'.'                            -> pushMode(CONTENT_TITLE_MODE)
-  //;
-
-CONTENT_PARA                     
+BLOCK_TITLE_START
   : {isBOL()}? 
-      ~[=[] .*? CONTENT_EOP 
+     '.'                            -> pushMode(BLOCK_TITLE_MODE)
   ;
 
-CONTENT_COMMENT
+BLOCK_PARA                     
+  : {isBOL()}? 
+      ~[=[.] .*? BLOCK_EOP 
+  ;
+
+BLOCK_COMMENT
   : COMMENT_F                     -> channel(HIDDEN) 
   ;
 
-CONTENT_EOP
+BLOCK_EOP
   : EOLF EOLF+                    
   ;
 
 
 ///////////////////
-mode ELEMENT_ATTR;
+mode BLOCK_ATTR;
 
-ELEMENT_ATTR_ID
+BLOCK_ATTR_ID
   : ATTR_ID_F
   ;
 
-ELEMENT_ATTR_COMMA
+BLOCK_ATTR_COMMA
   :  WS_CHAR* COMMA WS_CHAR*
   ;
 
-ELEMENT_ATTR_ASSIGN
-  :  WS_CHAR* EQUAL                        -> pushMode(ELEMENT_ATTR_VAL)
+BLOCK_ATTR_ASSIGN
+  :  WS_CHAR* EQUAL                        -> pushMode(BLOCK_ATTR_VAL)
   ;
 
-ELEMENT_ATTR_TYPE_ROLE
+BLOCK_ATTR_TYPE_ROLE
   :  WS_CHAR* PERIOD                        
   ;
 
-ELEMENT_ATTR_TYPE_OPTION
+BLOCK_ATTR_TYPE_OPTION
   :  WS_CHAR* PERCENT                        
   ;
 
-ELEMENT_ATTR_TYPE_ID
+BLOCK_ATTR_TYPE_ID
   :  WS_CHAR* HASH                       
   ;
 
-ELEMENT_ATTR_UNSET
+BLOCK_ATTR_UNSET
   : WS_CHAR* BANG  
   ;
 
-ELEMENT_ATTR_END
+BLOCK_ATTR_END
   :  WS_CHAR* ']'                        
   ;
 
-ELEMENT_ATTR_EOL
+BLOCK_ATTR_EOL
   :  WS_CHAR* EOLF                        -> popMode
   ;
 
 ///////////////////
-mode ELEMENT_ATTR_VAL;
+mode BLOCK_ATTR_VAL;
 
 fragment 
-ELEMENT_ATTR_VALUE_QUOTED_SINGLE
+BLOCK_ATTR_VALUE_QUOTED_SINGLE
   : SINGLE_QUOTE (~['\r\n] | (ESC SINGLE_QUOTE))*? SINGLE_QUOTE
   ;
 
 fragment 
-ELEMENT_ATTR_VALUE_QUOTED_DOUBLE
+BLOCK_ATTR_VALUE_QUOTED_DOUBLE
   : DOUBLE_QUOTE (~["\r\n] | (ESC DOUBLE_QUOTE))*? DOUBLE_QUOTE
   ;
 
 fragment 
-ELEMENT_ATTR_VALUE_UNQUOTED
+BLOCK_ATTR_VALUE_UNQUOTED
   : ~['"\],\r\n ]*?
   ;
 
-ELEMENT_ATTR_VALUE
-  : ( ELEMENT_ATTR_VALUE_QUOTED_SINGLE                               
-    | ELEMENT_ATTR_VALUE_QUOTED_DOUBLE
-    | ELEMENT_ATTR_VALUE_UNQUOTED )           -> popMode
+BLOCK_ATTR_VALUE
+  : ( BLOCK_ATTR_VALUE_QUOTED_SINGLE                               
+    | BLOCK_ATTR_VALUE_QUOTED_DOUBLE
+    | BLOCK_ATTR_VALUE_UNQUOTED )           -> popMode
   ;
 
 ///////////////////
-mode CONTENT_TITLE_MODE;
+mode BLOCK_TITLE_MODE;
 
-CONTENT_TITLE_TEXT
+BLOCK_TITLE_TEXT
   : ~[\r\n]+                               
   ;
 
-CONTENT_TITLE_EOL
+BLOCK_TITLE_EOL
   : EOLF                                  -> popMode
   ;
 
