@@ -10,9 +10,22 @@ tokens {
 
 @lexer::members {
 
+  private String delimBlockBoundary = null;
   private ArrayDeque<Token> tokenQueue = new ArrayDeque<Token>();
   private int currentSectionLevel = 0;
-  public boolean isBOL() { return _input.LA(-1) == '\n'; }
+  private boolean isBOL = false;
+  //public boolean isBOL { return _input.LA(-1) == '\n'; }
+
+  public boolean isDelimEnd() {
+    if (!isBOL || delimBlockBoundary == null) return false;
+
+    for (int i=0; i<delimBlockBoundary.length(); i++) {
+      if (_input.LA(i) != delimBlockBoundary.charAt(i))
+        return false;
+    }
+
+    return true;
+  }
 
 	public void emit(int type) {
 		Token t = _factory.create(_tokenFactorySourcePair, type, null, _channel, 
@@ -23,6 +36,7 @@ tokens {
 
   @Override public void emit(Token t) {
     tokenQueue.add(t);
+    isBOL = t.getText().endsWith("\n");
   }
 
 	@Override
@@ -45,17 +59,17 @@ tokens {
 // default mode 
 
 H0  
-  : {isBOL()}?  
+  : {isBOL}?  
       EQUAL WS                    -> pushMode(DOCTITLE)
   ;
 
 ATTR_BEGIN
-  : { isBOL() }?  
+  : { isBOL }?  
       COLON                       -> pushMode(ATTR)
   ;
 
 PPD_START
-  : { isBOL() }? 
+  : { isBOL }? 
       ( 'ifdef' 
       | 'ifndef' 
       | 'ifeval' ) '::' WS_CHAR*  -> pushMode(PPMODE)
@@ -66,7 +80,7 @@ COMMENT
   ;
 
 END_OF_HEADER
-  : { isBOL() }? 
+  : { isBOL }? 
       EOLF+                       -> pushMode(BLOCK)
   ;
 
@@ -85,7 +99,7 @@ COMMENT_F
 
 fragment
 SEC_TITLE_START_F
-  : { isBOL() }? 
+  : { isBOL }? 
       ( '==' | '######' 
       | '===' | '#####'
       | '====' | '####'
@@ -94,34 +108,13 @@ SEC_TITLE_START_F
     ;
 
 fragment
-H1
-  : '=='  
-  ;
-
-fragment
-H2
-  : '==='  
-  ;
-
-fragment
-H3
-  : '===='  
-  ;
-
-fragment
-H4
-  : '====='  
-  ;
-
-fragment
-H5
-  : '======'  
-  ;
-
-
-fragment
 EOLF
   : '\r'? '\n'
+  ;
+
+fragment
+LETTER 
+  : [\p{L}]
   ;
 
 fragment
@@ -201,7 +194,12 @@ SPACE
 
 fragment 
 DIGIT 
-  : [0-9] 
+  : [\p{N}]
+  ; 
+
+fragment 
+PUNCT 
+  : [\p{P}]
   ; 
 
 fragment
@@ -357,22 +355,21 @@ SECTITLE_START
 		currentSectionLevel = level;
     mode(SECTION_TITLE);
   }
-
   ;
 
 BLOCK_ATTR_START
-  : {isBOL()}? 
+  : {isBOL}? 
      '[' WS_CHAR*                   -> pushMode(BLOCK_ATTR)
   ;
 
 BLOCK_TITLE_START
-  : {isBOL()}? 
+  : {isBOL}? 
      '.'                            -> pushMode(BLOCK_TITLE_MODE)
   ;
 
 BLOCK_PARA                     
-  : {isBOL()}? 
-      ~[=[.] .*? BLOCK_EOP 
+  : {isBOL}? 
+      ~[+|*`\-_=[.] .*? BLOCK_EOP 
   ;
 
 BLOCK_COMMENT
@@ -383,6 +380,56 @@ BLOCK_EOP
   : EOLF EOLF+                    
   ;
 
+///////////////////
+// delimited blocks
+
+BLOCK_TABLE_START
+  : {isBOL}? '|===' EOLF         
+  ;
+
+BLOCK_COMMENT_START
+  : {isBOL}? '////' EOLF         
+  ;
+
+BLOCK_EXAMPLE_START
+  : {isBOL}? '====' EOLF         
+  ;
+
+BLOCK_FENCED_START
+  : {isBOL}? '```' EOLF         
+  ;
+
+BLOCK_LISTING_START
+  : {isBOL}? '----' EOLF         
+  ;
+
+BLOCK_LITERAL_START
+  : {isBOL}? '....' EOLF         
+  ;
+
+BLOCK_PASS_START
+  : {isBOL}? '++++' EOLF         
+  ;
+
+BLOCK_SIDEBAR_START
+  : {isBOL}? 
+  ( '****' 
+  | '*****'
+  | '******'
+  | '*******'
+  | '********'
+  | '*********'
+  | '**********'
+  ) EOLF          
+  {
+    delimBlockBoundary = getText().trim();
+    pushMode(DELIM_CONTENT);
+  }
+  ;
+
+BLOCK_VERSE_START
+  : {isBOL}? '____' EOLF         
+  ;
 
 ///////////////////
 mode BLOCK_ATTR;
@@ -483,6 +530,27 @@ mode PPCONTENT;
 
 PPD_CONTENT
   : .*? EOLF 'endif::[]' EOLF                    -> popMode
+  ;
+
+///////////////////
+mode DELIM_CONTENT;
+
+DELIM_BLOCK_LINE
+  : {isBOL}?
+    ~[\r\n]*   
+    EOLF
+    {!getText().trim().equals(delimBlockBoundary)}?
+  ;
+
+DELIM_BLOCK_END           
+  : {isBOL}? 
+    ~[\r\n]+   
+    EOLF
+    {getText().trim().equals(delimBlockBoundary)}?
+    {
+      System.out.println("got delim end");
+      popMode();
+    }
   ;
 
 

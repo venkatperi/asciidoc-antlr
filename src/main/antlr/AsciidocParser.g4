@@ -274,6 +274,7 @@ body_item_meta
 
 body_item
   : paragraph
+  | delim_block
   | section
   ;
 
@@ -292,6 +293,22 @@ block_title
   : BLOCK_TITLE_TEXT BLOCK_TITLE_EOL
   ;
   
+  
+///////////////////////
+// delimited blocks 
+
+delim_block
+  :  sidebar_block
+  ;
+
+sidebar_block
+  :  BLOCK_SIDEBAR_START delim_block_content DELIM_BLOCK_END
+  ;
+
+delim_block_content
+  : DELIM_BLOCK_LINE*
+  ;
+
 ///////////////////////
 // conditional pre-processor directives
 
