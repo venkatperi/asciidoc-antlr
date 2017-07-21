@@ -14,7 +14,6 @@ tokens {
   private ArrayDeque<Token> tokenQueue = new ArrayDeque<Token>();
   private int currentSectionLevel = 0;
   private boolean isBOL = false;
-  //public boolean isBOL { return _input.LA(-1) == '\n'; }
 
   public void startDelimBlock() {
     delimBlockBoundary = getText().trim();
@@ -99,7 +98,7 @@ WS
 
 fragment
 COMMENT_F
-  : '//' ~[\r\n]*                 
+  : '//' ~'/' ~[\r\n]*?  EOLF+          
   ;
 
 fragment
@@ -326,7 +325,7 @@ ATTR_VALUE
   ;
 
 ATTR_EOL
-  : WS_CHAR* EOLF                            -> popMode
+  : WS_CHAR* EOLF                        -> popMode
   ;
 
 ///////////////////
@@ -347,24 +346,27 @@ mode BLOCK;
 SECTITLE_START  
   : SEC_TITLE_START_F               
   {
-    int level = getText().trim().length() - 1;
-		if (level <= currentSectionLevel) {
-			for (int i=0; i<=currentSectionLevel - level; i++)
-				emit(SECTION_END);	
-		}
-		else if (level > currentSectionLevel + 1) {
-			throw new RuntimeException("line " + getLine() + ":" + getCharPositionInLine() 
-				+ " Illegal subsection header: found :" + level 
-				+ ", required: " + (currentSectionLevel + 1));
-		}
-		currentSectionLevel = level;
+    if (false) {
+      int level = getText().trim().length() - 1;
+      if (level <= currentSectionLevel) {
+        for (int i=0; i<=currentSectionLevel - level; i++)
+          emit(SECTION_END);	
+      }
+      /*else if (level > currentSectionLevel + 1) {
+        throw new RuntimeException("line " + getLine() + ":" + getCharPositionInLine() 
+          + " Illegal subsection header: found :" + level 
+          + ", required: " + (currentSectionLevel + 1));
+      }
+      */
+      currentSectionLevel = level;
+    }
     mode(SECTION_TITLE);
   }
   ;
 
 BLOCK_ATTR_START
   : {isBOL}? 
-     '[' WS_CHAR*                   -> pushMode(BLOCK_ATTR)
+     '[' ~[[] WS_CHAR*                   -> pushMode(BLOCK_ATTR)
   ;
 
 BLOCK_TITLE_START
@@ -374,11 +376,15 @@ BLOCK_TITLE_START
 
 BLOCK_PARA                     
   : {isBOL}? 
-      ~[+|*`\-_=[.] .*? BLOCK_EOP 
+      ( ( [/|+*`\-_=] (LETTER | DIGIT | WS_CHAR) ) 
+      | ('[[' )
+      | ~[/|.[+*`\-_=]
+      )
+      .*? BLOCK_EOP 
   ;
 
 BLOCK_COMMENT
-  : COMMENT_F                     -> channel(HIDDEN) 
+  : COMMENT_F                       -> channel(HIDDEN) 
   ;
 
 BLOCK_EOP
@@ -392,6 +398,12 @@ BLOCK_EOP
 BLOCK_TABLE_START
   : {isBOL}? 
     '|===' WS_CHAR* EOLF
+    { startDelimBlock(); }
+  ;
+
+BLOCK_ANON_START
+  : {isBOL}? 
+    '--' WS_CHAR* EOLF
     { startDelimBlock(); }
   ;
 
@@ -426,6 +438,7 @@ BLOCK_EXAMPLE_START
 BLOCK_FENCED_START
   : {isBOL}? '```' 
     WS_CHAR* EOLF         
+    { startDelimBlock(); }
   ;
 
 BLOCK_LISTING_START
@@ -494,7 +507,7 @@ BLOCK_VERSE_START
     | '_________'
     | '__________'
     )
-    W_CHAR* EOLF
+    WS_CHAR* EOLF
     { startDelimBlock(); }
   ;
 
@@ -596,7 +609,7 @@ PPD_CONTENT_START
 mode PPCONTENT;
 
 PPD_CONTENT
-  : .*? EOLF 'endif::[]' EOLF                    -> popMode
+  : .*? EOLF 'endif::[]' EOLF+                    -> popMode
   ;
 
 ///////////////////

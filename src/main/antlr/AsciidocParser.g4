@@ -10,7 +10,7 @@ options { tokenVocab = AsciidocLexer; }
 // start rule
 
 asciidoc
-  : pre_header_lines? header sections EOF
+  : pre_header_lines? header preamble? sections EOF
   ;
 
 pre_header_lines
@@ -162,6 +162,9 @@ attr_value
 ///////////////////////
 // doc preamble
 
+preamble
+  : sec_body_items
+  ;
 
 ///////////////////////
 // doc sections
@@ -172,7 +175,7 @@ sections
   ;
 
 section
-  : section_start_lines sec_body_items (SECTION_END | EOF)
+  : section_start_lines sec_body_items //(SECTION_END | EOF)
   ;
 
 section_start_lines
@@ -275,7 +278,7 @@ body_item_meta
 body_item
   : paragraph
   | delim_block
-  | section
+  //| section
   ;
 
 paragraph
@@ -307,6 +310,7 @@ delim_block
     | pass_block
     | verse_block
     | table_block
+    | anon_block
     )
   ;
 
@@ -346,6 +350,10 @@ sidebar_block
   :  BLOCK_SIDEBAR_START delim_block_content DELIM_BLOCK_END
   ;
 
+anon_block
+  :  BLOCK_ANON_START delim_block_content DELIM_BLOCK_END
+  ;
+
 delim_block_content
   : DELIM_BLOCK_LINE*
   ;
@@ -354,7 +362,7 @@ delim_block_content
 // conditional pre-processor directives
 
 pp_directive
-  : PPD_START ppd_attrs ppd_content
+  : PPD_START ppd_attrs? ppd_content
   ;
 
 ppd_attrs
