@@ -42,6 +42,69 @@ endif::[]
 :uri-quick: http://asciidoctor.org/docs/asciidoc-syntax-quick-reference/
 :uri-what-asciidoc: http://asciidoctor.org/docs/what-is-asciidoc-why-use-it
 
+////
+Raw material about block masquerading:
+
+Adding [listing] above the block will fix this.
+A [listing] over a delimited block with four dots is indistinguishable from a delimited block with four hyphens.
+I refer to this as block masquerading, since many of the blocks can masquerade as other blocks using a style to "force" the block type.
+The most common form of this is the open block, which is two hyphens.
+An open block can accept any "style" (i.e., block type) and become that block.
+To give you an example, here's an open block acting as a quote block:
+
+```
+[quote]
+--
+A famous quote.
+--
+```
+
+Likewise, a literal block acting as a listing block:
+
+```
+[listing]
+....
+puts "Hello, World!"
+....
+````
+
+Note that "listing" and "source" are effectively the same, except that source triggers the source filter whereas listing does not.
+////
+
+////
+TODO:
+
+- show sample output
+- literal paragraphs
+- footnotes (in section on admonitions)
+- clarification about doctypes and level-0 sections (perhaps in an admonition block)
+- fill out the "Why AsciiDoc works" section
+- move "Who's using AsciiDoc?" to one of the opening sections, mention some examples
+- include bit about importance of documentation, profound impact on project, greatest project/initiative in the world, but if nobody knows about it...
+
+- consult https://gist.github.com/mojavelinux/4761050 for ideas to integrate
+- brief bit comparing AsciiDoc to Markdown
+- mention the required quoting of block attributes when using AsciiDoc
+////
+
+:compat-mode!:
+
+This guide provides a gentle introduction to AsciiDoc, a _plain text_ documentation *syntax* and *processor*.
+This introduction is intended for anyone who wants to reduce the effort required to write and publish content, whether for technical documentation, articles, web pages or good ol'-fashioned prose.
+
+TIP: If you want to know what AsciiDoc is all about, find the answer in {uri-what-asciidoc}[What is AsciiDoc?].
+If you're looking for a concise survey of the AsciiDoc syntax, consult the {uri-quick}[AsciiDoc Syntax Quick Reference].
+
+In this guide, you'll learn:
+
+- The basic structure of an AsciiDoc document
+- How to create your first AsciiDoc document
+- How to add other structural elements such as lists, block quotes and source code
+- How to render an AsciiDoc document to HTML, DocBook and PDF
+
+In addition to covering the AsciiDoc basics, this guide also suggests a set of conventions to help you create more consistent documents and maximize your writing productivity.
+
+Let's dive in to AsciiDoc!
 
 == Writing in AsciiDoc
 
@@ -553,8 +616,8 @@ For example, the following syntax is illegal:
 
 == First Section
 
-//==== Illegal Nested Section (violates rule #2)
-//----
+==== Illegal Nested Section (violates rule #2)
+----
 
 Content above the first section (after the document title) is part of the preamble.
 Once the first section is reached, content is associated with the section that precedes it:

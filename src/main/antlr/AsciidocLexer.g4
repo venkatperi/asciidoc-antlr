@@ -12,11 +12,13 @@ tokens {
 
   private String delimBlockBoundary = null;
   private ArrayDeque<Token> tokenQueue = new ArrayDeque<Token>();
-  private int currentSectionLevel = 0;
+  private boolean isFirstSection = true;
   private boolean isBOL = false;
 
   public void startDelimBlock() {
-    delimBlockBoundary = getText().trim();
+    String s = getText().trim();
+    if (s.startsWith("```"))
+      delimBlockBoundary = "```";
     pushMode(DELIM_CONTENT);
   }
 
@@ -346,27 +348,23 @@ mode BLOCK;
 SECTITLE_START  
   : SEC_TITLE_START_F               
   {
-    if (false) {
-      int level = getText().trim().length() - 1;
-      if (level <= currentSectionLevel) {
-        for (int i=0; i<=currentSectionLevel - level; i++)
-          emit(SECTION_END);	
-      }
-      /*else if (level > currentSectionLevel + 1) {
-        throw new RuntimeException("line " + getLine() + ":" + getCharPositionInLine() 
-          + " Illegal subsection header: found :" + level 
-          + ", required: " + (currentSectionLevel + 1));
-      }
-      */
-      currentSectionLevel = level;
-    }
+    if (isFirstSection) 
+      isFirstSection = false;
+    else
+      emit(SECTION_END);	
+    
     mode(SECTION_TITLE);
   }
   ;
 
+BLOCK_ANCHOR_START
+  : {isBOL}? 
+    '[[' .*? ']]' 
+  ;
+
 BLOCK_ATTR_START
   : {isBOL}? 
-     '[' ~[[] WS_CHAR*                   -> pushMode(BLOCK_ATTR)
+     '[' WS_CHAR*                   -> pushMode(BLOCK_ATTR)
   ;
 
 BLOCK_TITLE_START
@@ -377,8 +375,7 @@ BLOCK_TITLE_START
 BLOCK_PARA                     
   : {isBOL}? 
       ( ( [/|+*`\-_=] (LETTER | DIGIT | WS_CHAR) ) 
-      | ('[[' )
-      | ~[/|.[+*`\-_=]
+      |  ~[/|+*`\-_=[.]
       )
       .*? BLOCK_EOP 
   ;
@@ -437,7 +434,7 @@ BLOCK_EXAMPLE_START
 
 BLOCK_FENCED_START
   : {isBOL}? '```' 
-    WS_CHAR* EOLF         
+    (WS_CHAR* | LETTER*) EOLF         
     { startDelimBlock(); }
   ;
 
