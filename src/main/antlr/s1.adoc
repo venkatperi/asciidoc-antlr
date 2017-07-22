@@ -13,9 +13,6 @@ so it remains readable to folks reading your docs code.
 :unset_right!:
 :set_to_true:
 ifdef::env-github+backend-html5[Only shown when converting to HTML5 on GitHub.]
-ifndef::env-github[]
-This content is not shown on GitHub.
-endif::[]
 
 
 [#chapter-1, attr2, attr3="some value"]

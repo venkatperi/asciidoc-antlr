@@ -4,7 +4,7 @@ First Author <author1@gmail.com>; Second Author <author2@gmail.com>
 v1.0,
 :leveloffset: 3
 
-[test]
+[#chapter-1, attr2, attr3="some value"]
 == Chapter 1
 
 This is a sample paragraph.

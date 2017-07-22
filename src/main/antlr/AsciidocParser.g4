@@ -135,12 +135,11 @@ attr_value
 // doc sections
 
 section
-  : section_header section_body SECTION_END
+  : section_header section_body ( SECTION_END | EOF )
   ;
 
 section_header
-  : block_attr_line*?
-    SECTITLE_START section_title SECTITLE_EOL  
+  : block_attr_line* SECTITLE_START section_title SECTITLE_EOL  
   ;
 
 section_title
