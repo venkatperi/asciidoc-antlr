@@ -5,7 +5,17 @@ options {
 }
 
 tokens {
-  SECTION_END
+  SECTION_END,
+  BLOCK_TABLE_START,
+  BLOCK_ANON_START,
+  BLOCK_COMMENT_START,
+  BLOCK_FENCED_START,
+  BLOCK_LISTING_START,
+  BLOCK_LITERAL_START,
+  BLOCK_PASS_START,
+  BLOCK_SIDEBAR_START,
+  BLOCK_VERSE_START,
+  BLOCK_EXAMPLE_START
 }
 
 
@@ -279,30 +289,10 @@ ATTR_EOL
   ;
 
 ///////////////////
-mode SECTION_TITLE;
-
-SECTITLE_TEXT
-  : ~[\r\n]+
-  ;
-
-SECTITLE_EOL
-  : EOLF+                           -> mode(BLOCK)
-  ;
-
-
-///////////////////
 mode BLOCK;
 
-SECTITLE_START  
-  : SEC_TITLE_START_F               
-  {
-    if (this.isFirstSection) 
-      this.isFirstSection = false;
-    else
-      this.emitType(this.SECTION_END);	
-    
-    this.mode(this.SECTION_TITLE);
-  }
+BLOCK_SECTION_TITLE  
+  : SEC_TITLE_START_F  ~[\r\n]+ EOLF+             
   ;
 
 BLOCK_ANCHOR
@@ -339,6 +329,18 @@ BLOCK_EOP
 ///////////////////
 // delimited blocks
 
+fragment
+DELIM_BOUNDARY_CHAR
+  : [\-.=_+*] 
+  ;
+
+BLOCK_DELIM_START
+  : {this.isBOL}?
+    ~[\r\n]+ EOLF
+    {this.isDelimBlockStart()}?
+    {this.startDelimBlock();}
+  ;
+/*
 
 BLOCK_TABLE_START
   : {this.isBOL}? 
@@ -455,6 +457,7 @@ BLOCK_VERSE_START
     WS_CHAR* EOLF
     { this.startDelimBlock(); this.pushMode(this.DELIM_CONTENT); }
   ;
+*/
 
 ///////////////////
 mode BLOCK_ATTR;

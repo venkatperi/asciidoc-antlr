@@ -138,11 +138,11 @@ section
   ;
 
 section_header
-  : block_attr_line* SECTITLE_START section_title SECTITLE_EOL  
+  : block_attr_line* section_title 
   ;
 
 section_title
-  :  SECTITLE_TEXT 
+  :  BLOCK_SECTION_TITLE 
   ;
 
 ///////////////////////
