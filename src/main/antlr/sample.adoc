@@ -18,6 +18,9 @@ This content is not shown on GitHub.
 endif::[]
 
 
+[.lead]
+This is the preamble
+
 [#chapter-1, attr2, attr3="some value"]
 == Chapter 1
 

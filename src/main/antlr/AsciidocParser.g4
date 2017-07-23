@@ -1,9 +1,5 @@
 parser grammar AsciidocParser;
 
-@members {
-  private int sectionLevel = 0;
-}
-
 options { tokenVocab = AsciidocLexer; }
 
 ///////////////////////
@@ -130,6 +126,9 @@ attr_value
 ///////////////////////
 // doc preamble
 
+preamble
+  : body_item* SECTION_END
+  ;
 
 ///////////////////////
 // doc sections
@@ -150,7 +149,8 @@ section_title
 // element attributes
 
 block_attr_line
-  :  BLOCK_ATTR_START  block_attr (BLOCK_ATTR_COMMA block_attr)* BLOCK_ATTR_END BLOCK_ATTR_EOL
+  : BLOCK_ATTR_START  block_attr (BLOCK_ATTR_COMMA block_attr)* BLOCK_ATTR_END BLOCK_ATTR_EOL
+  | anchor
   ;
 
 block_attr
@@ -198,10 +198,10 @@ block_attr_value
 // section content 
 
 section_body
-  : section_body_item*
+  : body_item*
   ;
 
-section_body_item
+body_item
   : block_attr_line* block_title_line?
     ( paragraph
     | delim_block
@@ -299,5 +299,12 @@ ppd_attr
 ppd_content
   : PPD_CONTENT_SINGLELINE
   | PPD_CONTENT_START PPD_CONTENT
+  ;
+
+///////////////////////
+// anchor
+
+anchor
+  : BLOCK_ANCHOR
   ;
 

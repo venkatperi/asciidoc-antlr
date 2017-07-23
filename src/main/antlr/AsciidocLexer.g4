@@ -1,81 +1,29 @@
 lexer grammar AsciidocLexer;
 
+options {
+  superClass=AbstractAsciidocLexer;
+}
+
 tokens {
   SECTION_END
 }
 
-@header {
-  import java.util.ArrayDeque;
-}
-
-@lexer::members {
-
-  private String delimBlockBoundary = null;
-  private ArrayDeque<Token> tokenQueue = new ArrayDeque<Token>();
-  private boolean isFirstSection = true;
-  private boolean isBOL = false;
-
-  public void startDelimBlock() {
-    String s = getText().trim();
-    if (s.startsWith("```"))
-      delimBlockBoundary = "```";
-    pushMode(DELIM_CONTENT);
-  }
-
-  public boolean isDelimEnd() {
-    if (!isBOL || delimBlockBoundary == null) return false;
-
-    for (int i=0; i<delimBlockBoundary.length(); i++) {
-      if (_input.LA(i) != delimBlockBoundary.charAt(i))
-        return false;
-    }
-
-    return true;
-  }
-
-	public void emit(int type) {
-		Token t = _factory.create(_tokenFactorySourcePair, type, null, _channel, 
-								_tokenStartCharIndex, getCharIndex()-1, _tokenStartLine, 
-								_tokenStartCharPositionInLine);
-		emit(t);
-	}
-
-  @Override public void emit(Token t) {
-    tokenQueue.add(t);
-    isBOL = t.getText().endsWith("\n");
-  }
-
-	@Override
-	public Token nextToken() {
-		if (tokenQueue.peek() != null) {
-			return tokenQueue.remove();
-		}
-
-		super.nextToken();
-
-		if (tokenQueue.peek() != null) {
-			return tokenQueue.remove();
-		}
-		return null;
-	}
-
-}
 
 ///////////////////
 // default mode 
 
 H0  
-  : {isBOL}?  
+  : {this.isBOL}?  
       EQUAL WS                    -> pushMode(DOCTITLE)
   ;
 
 ATTR_BEGIN
-  : { isBOL }?  
+  : { this.isBOL }?  
       COLON                       -> pushMode(ATTR)
   ;
 
 PPD_START
-  : { isBOL }? 
+  : { this.isBOL }? 
       ( 'ifdef' 
       | 'ifndef' 
       | 'ifeval' ) '::' WS_CHAR*  -> pushMode(PPMODE)
@@ -86,7 +34,7 @@ COMMENT
   ;
 
 END_OF_HEADER
-  : { isBOL }? 
+  : { this.isBOL }? 
       EOLF+                       -> pushMode(BLOCK)
   ;
 
@@ -105,7 +53,7 @@ COMMENT_F
 
 fragment
 SEC_TITLE_START_F
-  : { isBOL }? 
+  : { this.isBOL }? 
       ( '==' | '######' 
       | '===' | '#####'
       | '====' | '####'
@@ -348,32 +296,32 @@ mode BLOCK;
 SECTITLE_START  
   : SEC_TITLE_START_F               
   {
-    if (isFirstSection) 
-      isFirstSection = false;
+    if (this.isFirstSection) 
+      this.isFirstSection = false;
     else
-      emit(SECTION_END);	
+      this.emitType(this.SECTION_END);	
     
-    mode(SECTION_TITLE);
+    this.mode(this.SECTION_TITLE);
   }
   ;
 
-BLOCK_ANCHOR_START
-  : {isBOL}? 
-    '[[' .*? ']]' 
+BLOCK_ANCHOR
+  : {this.isBOL}? 
+    '[[' .*? ']]'  EOLF+
   ;
 
 BLOCK_ATTR_START
-  : {isBOL}? 
+  : {this.isBOL}? 
      '[' WS_CHAR*                   -> pushMode(BLOCK_ATTR)
   ;
 
 BLOCK_TITLE_START
-  : {isBOL}? 
+  : {this.isBOL}? 
      '.'                            -> pushMode(BLOCK_TITLE_MODE)
   ;
 
 BLOCK_PARA                     
-  : {isBOL}? 
+  : {this.isBOL}? 
       ( ( [/|+*`\-_=] (LETTER | DIGIT | WS_CHAR) ) 
       |  ~[/|+*`\-_=[.]
       )
@@ -393,19 +341,19 @@ BLOCK_EOP
 
 
 BLOCK_TABLE_START
-  : {isBOL}? 
+  : {this.isBOL}? 
     '|===' WS_CHAR* EOLF
-    { startDelimBlock(); }
+    { this.startDelimBlock(); this.pushMode(this.DELIM_CONTENT); }
   ;
 
 BLOCK_ANON_START
-  : {isBOL}? 
+  : {this.isBOL}? 
     '--' WS_CHAR* EOLF
-    { startDelimBlock(); }
+    { this.startDelimBlock(); this.pushMode(this.DELIM_CONTENT); }
   ;
 
 BLOCK_COMMENT_START
-  : {isBOL}? 
+  : {this.isBOL}? 
     ( '////' 
     | '/////'
     | '//////'
@@ -415,11 +363,11 @@ BLOCK_COMMENT_START
     | '//////////'
     )
     WS_CHAR* EOLF
-    { startDelimBlock(); }
+    { this.startDelimBlock(); this.pushMode(this.DELIM_CONTENT); }
   ;
 
 BLOCK_EXAMPLE_START
-  : {isBOL}? 
+  : {this.isBOL}? 
     ( '====' 
     | '====='
     | '======'
@@ -429,17 +377,17 @@ BLOCK_EXAMPLE_START
     | '=========='
     )
     WS_CHAR* EOLF
-    { startDelimBlock(); }
+    { this.startDelimBlock(); this.pushMode(this.DELIM_CONTENT); }
   ;
 
 BLOCK_FENCED_START
-  : {isBOL}? '```' 
+  : {this.isBOL}? '```' 
     (WS_CHAR* | LETTER*) EOLF         
-    { startDelimBlock(); }
+    { this.startDelimBlock(); this.pushMode(this.DELIM_CONTENT); }
   ;
 
 BLOCK_LISTING_START
-  : {isBOL}? 
+  : {this.isBOL}? 
     ( '----' 
     | '-----'
     | '------'
@@ -449,11 +397,11 @@ BLOCK_LISTING_START
     | '----------'
     )
     WS_CHAR* EOLF         
-    { startDelimBlock(); }
+    { this.startDelimBlock(); this.pushMode(this.DELIM_CONTENT); }
   ;
 
 BLOCK_LITERAL_START
-  : {isBOL}? 
+  : {this.isBOL}? 
     ( '....' 
     | '.....'
     | '......'
@@ -463,11 +411,11 @@ BLOCK_LITERAL_START
     | '..........'
     )
     WS_CHAR* EOLF
-    { startDelimBlock(); }
+    { this.startDelimBlock(); this.pushMode(this.DELIM_CONTENT); }
   ;
 
 BLOCK_PASS_START
-  : {isBOL}? 
+  : {this.isBOL}? 
     ( '++++' 
     | '+++++'
     | '++++++'
@@ -477,11 +425,11 @@ BLOCK_PASS_START
     | '++++++++++'
     )
     WS_CHAR* EOLF         
-    { startDelimBlock(); }
+    { this.startDelimBlock(); this.pushMode(this.DELIM_CONTENT); }
   ;
 
 BLOCK_SIDEBAR_START
-  : {isBOL}? 
+  : {this.isBOL}? 
     ( '****' 
     | '*****'
     | '******'
@@ -491,11 +439,11 @@ BLOCK_SIDEBAR_START
     | '**********'
     ) 
     WS_CHAR* EOLF          
-  { startDelimBlock(); }
+  { this.startDelimBlock(); this.pushMode(this.DELIM_CONTENT); }
   ;
 
 BLOCK_VERSE_START
-  : {isBOL}? 
+  : {this.isBOL}? 
     ( '____' 
     | '_____'
     | '______'
@@ -505,7 +453,7 @@ BLOCK_VERSE_START
     | '__________'
     )
     WS_CHAR* EOLF
-    { startDelimBlock(); }
+    { this.startDelimBlock(); this.pushMode(this.DELIM_CONTENT); }
   ;
 
 ///////////////////
@@ -613,20 +561,17 @@ PPD_CONTENT
 mode DELIM_CONTENT;
 
 DELIM_BLOCK_LINE
-  : {isBOL}?
+  : {this.isBOL}?
     ~[\r\n]*   
     EOLF
-    {!getText().trim().equals(delimBlockBoundary)}?
+    {!this.isDelimBlockEnd()}?
   ;
 
 DELIM_BLOCK_END           
-  : {isBOL}? 
+  : {this.isBOL}? 
     ~[\r\n]+   
     EOLF+
-    {getText().trim().equals(delimBlockBoundary)}?
-    {
-      popMode();
-    }
+    {this.isDelimBlockEnd()}?                   -> popMode
   ;
 
 

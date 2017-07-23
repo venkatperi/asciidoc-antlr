@@ -1,0 +1,18 @@
+<html>
+  <head>
+  </head>
+  <body>
+    <script src="lodash.core.min.js"></script>
+    <script src="inspire-tree.min.js"></script>
+    <script>
+new InspireTree( {
+  target: "#tree",
+  data: [
+    
+{ "text": asciidoc, "children": [{ "text": doc_header, "children": [{ "text": doc_title_line, "children": [{ "text": [H0] = }, { "text": doc_title_def, "children": [{ "text": doc_title, "children": [{ "text": [DOCTITLE_PART] This is the title}]}, { "text": [DOCTITLE_CSP] : }, { "text": doc_subtitle, "children": [{ "text": [DOCTITLE_PART] this is the subtitle}]}, { "text": [DOCTITLE_EOL] \n}]}]}, { "text": doc_author_rev_line, "children": [{ "text": doc_author_line, "children": [{ "text": doc_authors, "children": [{ "text": doc_authors, "children": [{ "text": doc_author, "children": [{ "text": doc_author_name, "children": [{ "text": doc_author_firstname, "children": [{ "text": [DOCAUTHOR_NAME] First}]}, { "text": doc_author_lastname, "children": [{ "text": [DOCAUTHOR_NAME] Author}]}]}, { "text": doc_author_contact, "children": [{ "text": [DOCAUTHOR_CONTACT] <author1@gmail.com>}]}]}]}, { "text": [DOCAUTHOR_SEP] ;}, { "text": doc_author, "children": [{ "text": doc_author_name, "children": [{ "text": doc_author_firstname, "children": [{ "text": [DOCAUTHOR_NAME] Second}]}, { "text": doc_author_lastname, "children": [{ "text": [DOCAUTHOR_NAME] Author}]}]}, { "text": doc_author_contact, "children": [{ "text": [DOCAUTHOR_CONTACT] <author2@gmail.com>}]}]}]}, { "text": [DOCAUTHOR_EOL] \n}]}, { "text": doc_revision_line, "children": [{ "text": [DOCREV_NUMPREFIX] v}, { "text": doc_rev_number, "children": [{ "text": [DOCREV_NUMBER] 1.0}]}, { "text": [DOCREV_COMMA] ,}, { "text": [DOCREV_EOL] \n}]}]}, { "text": global_attrs, "children": [{ "text": global_attr, "children": [{ "text": [ATTR_BEGIN] :}, { "text": attr_def, "children": [{ "text": attr_set, "children": [{ "text": attr_id, "children": [{ "text": [ATTR_ID] leveloffset}]}, { "text": [ATTR_SEP] : }, { "text": attr_value, "children": [{ "text": [ATTR_VALUE] 3}]}]}]}, { "text": [ATTR_EOL] \n}]}]}, { "text": [END_OF_HEADER] \n}]}, { "text": doc_sections, "children": [{ "text": doc_section, "children": [{ "text": section_start_lines, "children": [{ "text": section_title_line, "children": [{ "text": [CONTENT_SEC_TITLE_START] == }, { "text": section_title, "children": [{ "text": [SECTITLE_TEXT] Chapter 1}]}, { "text": [SECTITLE_EOL] \n\n}]}]}, { "text": sec_content_items, "children": [{ "text": sec_content_items, "children": [{ "text": sec_content_item, "children": [{ "text": paragraph, "children": [{ "text": [CONTENT_PARA] This is a sample paragraph.\nThis is the second line of the first para\nAlso part of first para.\n\n}]}]}]}, { "text": sec_content_item, "children": [{ "text": paragraph, "children": [{ "text": [CONTENT_PARA] This is the second para.\n\n\n}]}]}]}]}]}, { "text": [EOF] <EOF>}]}
+    ]
+});
+    </script>
+    <div id="tree"></div>
+  </body>
+</html>

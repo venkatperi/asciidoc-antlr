@@ -1,3 +1,4 @@
+apply plugin: 'groovy'
 apply plugin: 'antlr'
 
 repositories {
@@ -5,9 +6,25 @@ repositories {
 }
 
 dependencies {
-  antlr "org.antlr:antlr4:4.7"
+  compile group: 'org.codehaus.groovy', name: 'groovy-all', version: '2.4.12'
+  compile group: 'com.github.julianthome', name: 'inmemantlr-api', version: '1.3.8'
+
   compile group: 'org.ghost4j', name: 'ghost4j', version: '1.0.1'
+
+  antlr "org.antlr:antlr4:4.7"
   testCompile 'junit:junit:4.12'
+}
+
+sourceSets {
+  main {
+    groovy {
+      srcDirs = ['src/main/groovy', 'src/main/java']
+    }
+
+    java {
+      srcDirs = []
+    }
+  }
 }
 
 generateGrammarSource {
@@ -15,8 +32,13 @@ generateGrammarSource {
   arguments += [ "-visitor", "-long-messages" ]
 }
 
-task testRig {
+task antlrJS(type: AntlrTask) {
+  maxHeapSize = "64m"
+  outputDirectory = new File("${project.buildDir}/generated-src/antlr/${sourceSets.main.name}/js")
+  arguments += [ "-Dlanguage=JavaScript"]
 }
+
+task testRig { }
 
 def dir = 'src/test/rig'
 FileTree tree = fileTree( dir: dir, include: '**/*.adoc' )
