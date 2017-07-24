@@ -310,6 +310,13 @@ BLOCK_TITLE_START
      '.'                            -> pushMode(BLOCK_TITLE_MODE)
   ;
 
+BLOCK_DELIM_START
+  : {this.isBOL}?
+    ~[\r\n]+ EOLF
+    {this.isDelimBlockStart()}?
+    {this.startDelimBlock();}
+  ;
+
 BLOCK_PARA                     
   : {this.isBOL}? 
       ( ( [/|+*`\-_=] (LETTER | DIGIT | WS_CHAR) ) 
@@ -325,139 +332,6 @@ BLOCK_COMMENT
 BLOCK_EOP
   : EOLF EOLF+                    
   ;
-
-///////////////////
-// delimited blocks
-
-fragment
-DELIM_BOUNDARY_CHAR
-  : [\-.=_+*] 
-  ;
-
-BLOCK_DELIM_START
-  : {this.isBOL}?
-    ~[\r\n]+ EOLF
-    {this.isDelimBlockStart()}?
-    {this.startDelimBlock();}
-  ;
-/*
-
-BLOCK_TABLE_START
-  : {this.isBOL}? 
-    '|===' WS_CHAR* EOLF
-    { this.startDelimBlock(); this.pushMode(this.DELIM_CONTENT); }
-  ;
-
-BLOCK_ANON_START
-  : {this.isBOL}? 
-    '--' WS_CHAR* EOLF
-    { this.startDelimBlock(); this.pushMode(this.DELIM_CONTENT); }
-  ;
-
-BLOCK_COMMENT_START
-  : {this.isBOL}? 
-    ( '////' 
-    | '/////'
-    | '//////'
-    | '///////'
-    | '////////'
-    | '/////////'
-    | '//////////'
-    )
-    WS_CHAR* EOLF
-    { this.startDelimBlock(); this.pushMode(this.DELIM_CONTENT); }
-  ;
-
-BLOCK_EXAMPLE_START
-  : {this.isBOL}? 
-    ( '====' 
-    | '====='
-    | '======'
-    | '======='
-    | '========'
-    | '========='
-    | '=========='
-    )
-    WS_CHAR* EOLF
-    { this.startDelimBlock(); this.pushMode(this.DELIM_CONTENT); }
-  ;
-
-BLOCK_FENCED_START
-  : {this.isBOL}? '```' 
-    (WS_CHAR* | LETTER*) EOLF         
-    { this.startDelimBlock(); this.pushMode(this.DELIM_CONTENT); }
-  ;
-
-BLOCK_LISTING_START
-  : {this.isBOL}? 
-    ( '----' 
-    | '-----'
-    | '------'
-    | '-------'
-    | '--------'
-    | '---------'
-    | '----------'
-    )
-    WS_CHAR* EOLF         
-    { this.startDelimBlock(); this.pushMode(this.DELIM_CONTENT); }
-  ;
-
-BLOCK_LITERAL_START
-  : {this.isBOL}? 
-    ( '....' 
-    | '.....'
-    | '......'
-    | '.......'
-    | '........'
-    | '.........'
-    | '..........'
-    )
-    WS_CHAR* EOLF
-    { this.startDelimBlock(); this.pushMode(this.DELIM_CONTENT); }
-  ;
-
-BLOCK_PASS_START
-  : {this.isBOL}? 
-    ( '++++' 
-    | '+++++'
-    | '++++++'
-    | '+++++++'
-    | '++++++++'
-    | '+++++++++'
-    | '++++++++++'
-    )
-    WS_CHAR* EOLF         
-    { this.startDelimBlock(); this.pushMode(this.DELIM_CONTENT); }
-  ;
-
-BLOCK_SIDEBAR_START
-  : {this.isBOL}? 
-    ( '****' 
-    | '*****'
-    | '******'
-    | '*******'
-    | '********'
-    | '*********'
-    | '**********'
-    ) 
-    WS_CHAR* EOLF          
-  { this.startDelimBlock(); this.pushMode(this.DELIM_CONTENT); }
-  ;
-
-BLOCK_VERSE_START
-  : {this.isBOL}? 
-    ( '____' 
-    | '_____'
-    | '______'
-    | '_______'
-    | '________'
-    | '_________'
-    | '__________'
-    )
-    WS_CHAR* EOLF
-    { this.startDelimBlock(); this.pushMode(this.DELIM_CONTENT); }
-  ;
-*/
 
 ///////////////////
 mode BLOCK_ATTR;
@@ -565,15 +439,13 @@ mode DELIM_CONTENT;
 
 DELIM_BLOCK_LINE
   : {this.isBOL}?
-    ~[\r\n]*   
-    EOLF
+    ~[\r\n]* EOLF
     {!this.isDelimBlockEnd()}?
   ;
 
 DELIM_BLOCK_END           
   : {this.isBOL}? 
-    ~[\r\n]+   
-    EOLF+
+    ~[\r\n]+ EOLF+
     {this.isDelimBlockEnd()}?                   -> popMode
   ;
 
