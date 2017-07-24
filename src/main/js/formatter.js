@@ -99,7 +99,7 @@ const toObject = function( tree, recog, opts = {} ) {
   if ( childCount > 0 ) {
     let children = res[ opts.children || 'children' ] = [];
     for ( let i = 0; i < childCount; i++ ) {
-      children.push( toObject( tree.getChild( i ), recog ) );
+      children.push( toObject( tree.getChild( i ), recog, opts ) );
     }
   }
 
@@ -145,5 +145,6 @@ const getNodeText = function( t, ruleNames, recog ) {
 module.exports = {
   toStringTree: toStringTree,
   toAsciiTree: toAsciiTree,
+  toObject: toObject,
   toJSON: toJSON
 }
