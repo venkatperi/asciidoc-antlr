@@ -9,9 +9,11 @@ AbstractAsciidocLexer.prototype = Object.create( antlr4.Lexer.prototype );
 
 AbstractAsciidocLexer.prototype.isFirstSection = true;
 
+AbstractAsciidocLexer.prototype.isBOL = true;
+
 AbstractAsciidocLexer.prototype.tokenQueue = [];
 AbstractAsciidocLexer.prototype.getDelimBoundaryType = function( str ) {
-  let proto = Object.getPrototypeOf(this);
+  let proto = Object.getPrototypeOf( this );
   switch ( str ) {
     case "|===":
       return proto.BLOCK_TABLE_START;
@@ -69,13 +71,13 @@ AbstractAsciidocLexer.prototype.isDelimBlockStart = function() {
 }
 
 AbstractAsciidocLexer.prototype.startDelimBlock = function() {
-  let proto = Object.getPrototypeOf(this);
+  let proto = Object.getPrototypeOf( this );
   let text = this.text.trim();
   if ( text.startsWith( "```" ) )
     text = "```";
   this.delimBlockBoundary = text;
   let s = text.length > 4 ? text.substr( 0, 4 ) : text;
-  this.type=this.getDelimBoundaryType( s );
+  this.type = this.getDelimBoundaryType( s );
   this.pushMode( proto.DELIM_CONTENT );
 }
 
@@ -92,7 +94,7 @@ AbstractAsciidocLexer.prototype.emitType = function( type, text ) {
 }
 
 AbstractAsciidocLexer.prototype.emitToken = function( t ) {
-  let proto = Object.getPrototypeOf(this);
+  let proto = Object.getPrototypeOf( this );
   //console.log(`${t.type} ${t.text.trim()}`);
   switch ( t.type ) {
     case proto.BLOCK_SECTION_TITLE:
@@ -108,18 +110,22 @@ AbstractAsciidocLexer.prototype.emitToken = function( t ) {
   this.isBOL = t.text.endsWith( "\n" );
 }
 
+AbstractAsciidocLexer.prototype.actualNextToken = function() {
+  let t = this.tokenQueue.shift();
+  if ( t )
+    this.isBOL = t.text.endsWith( "\n" );
+  return t;
+}
+
 AbstractAsciidocLexer.prototype.nextToken = function() {
-  if ( this.tokenQueue.length > 0 ) {
-    return this.tokenQueue.shift();
+  let t = this.actualNextToken();
+
+  if ( !t ) {
+    Object.getPrototypeOf( AbstractAsciidocLexer.prototype ).nextToken.call( this );
+    t = this.actualNextToken();
   }
 
-  Object.getPrototypeOf( AbstractAsciidocLexer.prototype ).nextToken.call( this );
-
-  if ( this.tokenQueue.length ) {
-    return this.tokenQueue.shift();
-  }
-
-  return null;
+  return t;
 }
 
 module.exports = {

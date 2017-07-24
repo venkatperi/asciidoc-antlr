@@ -24,7 +24,7 @@ tokens {
 
 H0  
   : {this.isBOL}?  
-      EQUAL WS                    -> pushMode(DOCTITLE)
+      EQUAL WS ~[\r\n]+ EOLF		  -> pushMode(HEADER)
   ;
 
 ATTR_BEGIN
@@ -41,11 +41,6 @@ PPD_START
 
 COMMENT
   : COMMENT_F                     -> channel(HIDDEN) 
-  ;
-
-END_OF_HEADER
-  : { this.isBOL }? 
-      EOLF+                       -> pushMode(BLOCK)
   ;
 
 EOL
@@ -183,82 +178,78 @@ DOCTITLE_PART
   ;
 
 DOCTITLE_EOL
-  : EOLF                            -> mode(AUTHOR)
+  : EOLF                            -> mode(HEADER) 
   ;
 
 ///////////////////
-mode AUTHOR;
+mode HEADER;
+
+AUTHOR
+  : AUTHOR_NAME AUTHOR_NAME? AUTHOR_NAME AUTHOR_CONTACT (SEMI WS_CHAR* AUTHOR)* EOLF
+	;
 
 // any non-whitespace char 
+fragment
 AUTHOR_NAME
-  : ~[ <>;\r\n]+
+  : ~[ <>;\r\n]+ WS_CHAR+
   ;
 
+fragment
 AUTHOR_CONTACT
-  : LT .*? GT 
+  : LT .*? GT  WS_CHAR*
   ;
 
-AUTHOR_SEP
-  : SEMI               
+fragment
+HEADER_EOL
+  : EOLF                          //-> mode(REV)
   ;
 
-AUTHOR_EOL
-  : EOLF                          -> mode(REV)
+END_OF_HEADER
+  : { this.isBOL }? 
+      WS_CHAR* EOLF+              -> mode(BLOCK)
   ;
 
-AUTHOR_WS 
-  : WS                            -> channel(HIDDEN) 
+REVISION
+  : { this.isBOL }?
+		( ( ( ([vV] REV_NUMBER ) | (REV_NUMBER COMMA )) REV_REMARK_F? )
+		| ( [vV]? REV_NUMBER COMMA REV_DATE REV_REMARK_F? )
+		| ( ([vV] REV_NUMBER ) | (REV_NUMBER COMMA ))
+		) EOLF
   ;
 
-
-///////////////////
-mode REV;
-
-
+fragment
 REV_NUMPREFIX
   : [vV] 
   ;
 
+fragment
+REV_DATE
+  : WS_CHAR* ~[:\r\n]+ WS_CHAR* 
+  ;
+
+fragment
+REV_REMARK_F
+  : COLON WS_CHAR* ~[\r\n]+
+	;
+
+fragment
 REV_NUMBER
   : DIGIT+ (PERIOD DIGIT+)*
   ;
 
+fragment
 REV_COMMA
-  : COMMA WS_CHAR*                -> mode(REV_DATE_MODE)
+  : COMMA WS_CHAR*                //-> mode(REV_DATE_MODE)
   ;
 
+fragment
 REV_COLON
-  : COLON WS_CHAR*                -> mode(REV_REM)
+  : COLON WS_CHAR*                //-> mode(REV_REM)
   ;
 
+fragment
 REV_EOL
-  : EOLF                          -> popMode
-  ;
-
-///////////////////
-mode REV_DATE_MODE;
-
-REV_DATE
-  : ~[:\r\n]+
-  ;
-
-REV_DATE_COLON
-  : COLON WS_CHAR*               -> type(REV_COLON), mode(REV_REM)
-  ;
-
-REV_DATE_EOL
-  : EOLF                         -> type(REV_EOL), popMode
-  ;
-
-///////////////////
-mode REV_REM;
-
-REV_REMARK
-  : ~[\r\n]+  
-  ;
-
-REV_REMARK_EOL
-  : EOLF                          -> type(REV_EOL), popMode
+  : EOLF                          //-> popMode
   ;
 
 ///////////////////

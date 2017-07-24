@@ -16,7 +16,7 @@ abstract class AbstractAsciidocLexer extends Lexer {
 
   public String delimBlockBoundary = null;
   public boolean isFirstSection = true;
-  public boolean isBOL = false;
+  public boolean isBOL = true;		//true for beginning of input
 
   public AbstractAsciidocLexer(CharStream input) {
     super(input);

@@ -30,69 +30,18 @@ header_line
 // doc title
 
 doc_title_line
-  : H0 doc_title_def
-  ;
-
-doc_title_def
-  : doc_title (DOCTITLE_CSP doc_subtitle)? DOCTITLE_EOL 
-  ;
-
-doc_title
-  : DOCTITLE_PART (DOCTITLE_CSP DOCTITLE_PART)*? 
-  ;
-
-doc_subtitle
-  : DOCTITLE_PART
+  : H0 //doc_title_def
   ;
 
 ///////////////////////
-// doc author 
-
+// doc author / rev
 authors
-  : author (AUTHOR_SEP author)* AUTHOR_EOL
-  ;
-
-author
-  : author_firstname author_middlename? author_lastname 
-    author_contact 
-  ;
-  
-author_firstname
-  : AUTHOR_NAME
-  ;
-
-author_middlename
-  : AUTHOR_NAME
-  ;
-
-author_lastname
-  : AUTHOR_NAME
-  ;
-
-author_contact
-  : AUTHOR_CONTACT
-  ;
-
-///////////////////////
-// doc revision
+  : AUTHOR
+	;
 
 revision
-  : (REV_NUMPREFIX? rev_number REV_COMMA)? 
-    rev_date?
-    (REV_COLON rev_remark)? REV_EOL
-  ;
-
-rev_number
-  : REV_NUMBER
-  ;
-
-rev_date
-  : REV_DATE
-  ;
-
-rev_remark
-  : REV_REMARK
-  ;
+  :  REVISION 
+	;
 
 ///////////////////////
 // global_attrs
