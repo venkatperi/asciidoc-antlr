@@ -47,7 +47,7 @@ revision
 // global_attrs
 
 global_attr
-  : ATTR_BEGIN attr_def ATTR_EOL
+  : ATTR_START attr_def ATTR_EOL
   ;
 
 attr_def

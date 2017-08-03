@@ -27,7 +27,7 @@ H0
       EQUAL WS ~[\r\n]+ EOLF		  -> pushMode(HEADER)
   ;
 
-ATTR_BEGIN
+ATTR_START
   : { this.isBOL }?  
       COLON                       -> pushMode(ATTR)
   ;
@@ -57,7 +57,7 @@ COMMENT_F
   ;
 
 fragment
-SEC_TITLE_START_F
+SECTION_TITLE_START
   : { this.isBOL }? 
       ( '==' | '######' 
       | '===' | '#####'
@@ -167,22 +167,19 @@ ATTR_ID_F
   ;
 
 ///////////////////
-mode DOCTITLE;
-
-DOCTITLE_CSP
-  : COLON SPACE 
-  ;
-
-DOCTITLE_PART
-  : ((':' + ~' ') | ~[:\r\n])+
-  ;
-
-DOCTITLE_EOL
-  : EOLF                            -> mode(HEADER) 
-  ;
-
-///////////////////
 mode HEADER;
+
+HEADER_ATTR_START
+  : { this.isBOL }?  
+      COLON                       -> pushMode(ATTR), type(ATTR_START)
+  ;
+
+HEADER_PPD_START
+  : { this.isBOL }? 
+      ( 'ifdef' 
+      | 'ifndef' 
+      | 'ifeval' ) '::' WS_CHAR*  -> pushMode(PPMODE), type(PPD_START)
+  ;
 
 AUTHOR
   : AUTHOR_NAME AUTHOR_NAME? AUTHOR_NAME AUTHOR_CONTACT (SEMI WS_CHAR* AUTHOR)* EOLF
@@ -199,11 +196,6 @@ AUTHOR_CONTACT
   : LT .*? GT  WS_CHAR*
   ;
 
-fragment
-HEADER_EOL
-  : EOLF                          //-> mode(REV)
-  ;
-
 END_OF_HEADER
   : { this.isBOL }? 
       WS_CHAR* EOLF+              -> mode(BLOCK)
@@ -211,8 +203,8 @@ END_OF_HEADER
 
 REVISION
   : { this.isBOL }?
-		( ( ( ([vV] REV_NUMBER ) | (REV_NUMBER COMMA )) REV_REMARK_F? )
-		| ( [vV]? REV_NUMBER COMMA REV_DATE REV_REMARK_F? )
+		( ( ( ([vV] REV_NUMBER ) | (REV_NUMBER COMMA )) REV_REMARK? )
+		| ( [vV]? REV_NUMBER COMMA REV_DATE REV_REMARK? )
 		| ( ([vV] REV_NUMBER ) | (REV_NUMBER COMMA ))
 		) EOLF
   ;
@@ -228,28 +220,13 @@ REV_DATE
   ;
 
 fragment
-REV_REMARK_F
+REV_REMARK
   : COLON WS_CHAR* ~[\r\n]+
 	;
 
 fragment
 REV_NUMBER
   : DIGIT+ (PERIOD DIGIT+)*
-  ;
-
-fragment
-REV_COMMA
-  : COMMA WS_CHAR*                //-> mode(REV_DATE_MODE)
-  ;
-
-fragment
-REV_COLON
-  : COLON WS_CHAR*                //-> mode(REV_REM)
-  ;
-
-fragment
-REV_EOL
-  : EOLF                          //-> popMode
   ;
 
 ///////////////////
@@ -283,7 +260,7 @@ ATTR_EOL
 mode BLOCK;
 
 BLOCK_SECTION_TITLE  
-  : SEC_TITLE_START_F  ~[\r\n]+ EOLF+             
+  : SECTION_TITLE_START ~[\r\n]+ EOLF+             
   ;
 
 BLOCK_ANCHOR

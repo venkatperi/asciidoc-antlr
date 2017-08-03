@@ -129,7 +129,8 @@ const getNodeText = function( t, ruleNames, recog ) {
     } else if ( t instanceof TerminalNode ) {
       if ( t.symbol !== null ) {
         let s = t.symbol;
-        return `[${recog.symbolicNames[s.type]} ${s.line}:${s.column}] ${s.text}`;
+				let name = s.type === -1 ? 'EOF' : recog.symbolicNames[s.type];
+        return `[${name} ${s.line}:${s.column}] ${s.text}`;
       }
     }
   }
